@@ -1,4 +1,5 @@
 #!/usr/bin/env julia
+__precompile__(false)
 
 # Parse arguments for dims and add_radon
 dims_str = split(ARGS[1], "x")
@@ -51,11 +52,25 @@ using Random  # Add this line to import the Random module
 # Import external packages with pyimport_conda
 sitk = pyimport_conda("SimpleITK", "simpleitk")
 np = pyimport_conda("numpy", "numpy")
-wandb = pyimport_conda("wandb", "wandb")
-skimage = pyimport_conda("skimage", "skimage")
-adrt = pyimport_conda("adrt", "adrt")
 
-wandb.init(project="synth")
+if !haskey(ENV, "SKIP_WANDB")
+    wandb = pyimport_conda("wandb", "wandb")
+    wandb.init(project="synth")
+else
+    struct MockWandB
+        init::Function
+        log::Function
+    end
+    wandb = MockWandB((args...; kwargs...) -> nothing, (args...; kwargs...) -> nothing)
+end
+
+try
+    skimage = pyimport_conda("skimage", "skimage")
+    adrt = pyimport_conda("adrt", "adrt")
+catch e
+    println("Warning: Could not import skimage or adrt. Proceeding without them.")
+end
+
 isinteractive() ? jim(:prompt, true) : prompt(:draw)
 includet.([
     "get_geometry_main.jl"
@@ -97,10 +112,10 @@ ig = ImageGeom(dims=dims, deltas=(spacing[1]cm, spacing[2]cm, spacing[3]cm))
 function json_based_can(ig, json_path, is_2d=true, is_debug=false)
     # Load parameters from the JSON file
     params = JSON.parsefile(json_path)
-    
+
     # Define the constants that were in the original function
     MAX_TILT_ANGLE = 0.05
-    
+
     # Extract parameters from JSON with defaults if not present
     center_cylinder = get(params, "center_cylinder", (0.0, 0.0, 0.0))
     bigger_cyl_size = get(params, "bigger_cyl_size", [1.0, 1.0, 1.0])
@@ -109,47 +124,47 @@ function json_based_can(ig, json_path, is_2d=true, is_debug=false)
     cylinder_bottom_curvature_b = get(params, "cylinder_bottom_curvature_b", cylinder_bottom_curvature * 2.0)
     rel_size_bottom_curvature = get(params, "rel_size_bottom_curvature", 0.5)
     cylinder_top_curvature = get(params, "cylinder_top_curvature", 0.1 * bigger_cyl_size[3])
-    
+
     # Extract angles
     angle = get(params, "angle", 0.0)
     x_cut_angle = get(params, "x_cut_angle", 0.0)
     y_cut_angle = get(params, "y_cut_angle", 0.0)
-    
+
     # Force angles to 0 if 2D mode is enabled
     if is_2d
         x_cut_angle = 0.0
         y_cut_angle = 0.0
     end
-    
+
     # Extract pipe parameters
     pipe_len = get(params, "pipe_len", 0.8 * (bigger_cyl_size[3] - cylinder_bottom_curvature + cylinder_top_curvature))
     pipe_cross_section = get(params, "pipe_cross_section", (0.15 * bigger_cyl_size[1], 0.15 * bigger_cyl_size[1]))
     pipe_density = get(params, "pipe_density", 0.3)
-    
+
     # Extract dispenser parameters
     dispenser_len = get(params, "dispenser_len", 0.2 * bigger_cyl_size[3])
     dispenser_cross_section = get(params, "dispenser_cross_section", (0.2 * bigger_cyl_size[1], 0.2 * bigger_cyl_size[2]))
     dispenser_density = get(params, "dispenser_density", 0.325)
-    
+
     # Extract fluid parameters
     len_cut = get(params, "len_cut", 0.3 * bigger_cyl_size[3])
     menisc_radius = get(params, "menisc_radius", bigger_cyl_size[2])  # Default to cylinder radius
     dual_phase_percentage = get(params, "dual_phase_percentage", 0.5)
     density_inside = get(params, "density_inside", 0.25)
     density_inside_b = get(params, "density_inside_b", 0.8 * density_inside)
-    
+
     # Extract meniscus parameters
     menisc_radius_mult = get(params, "menisc_radius_mult", 1.5)
     menisc_cut_total_height = get(params, "menisc_cut_total_height", 0.2 * bigger_cyl_size[3])
     menisc_cut_height = get(params, "menisc_cut_height", 0.075 * bigger_cyl_size[3])
-    
+
     # Extract feature flags
     rounded_bottom = get(params, "rounded_bottom", true)
     double_bottom_curvature = get(params, "double_bottom_curvature", true)
     add_pipe = get(params, "add_pipe", true)
     first_ball = get(params, "first_ball", false)
     second_ball = get(params, "second_ball", false)
-    
+
     # Extract shape parameters
     curvature = get(params, "curvature", 0.04 * bigger_cyl_size[3])
     tube_ball_fraction = get(params, "tube_ball_fraction", 0.75)
@@ -157,10 +172,10 @@ function json_based_can(ig, json_path, is_2d=true, is_debug=false)
     torus_height_factor = get(params, "torus_height_factor", 0.1)
     r_xy_small_factor = get(params, "r_xy_small_factor", 0.2)
     r_z_small_factor = get(params, "r_z_small_factor", 0.02)
-    
+
     # Get spacing from JSON or use default
     spacing = get(params, "spacing", (0.05, 0.05, 0.05))
-    
+
     # Initialize objects as empty arrays (same as in original function)
     ob4 = []
     ob5 = []
@@ -171,11 +186,11 @@ function json_based_can(ig, json_path, is_2d=true, is_debug=false)
     ob5b_mask = []
     density_map = Dict{String,Float64}()
     name_type_list = []
-    
+
     # Debug output similar to the original function
     if is_debug
         println("==== CYLINDER VOLUME DEBUG ====")
-        
+
         # Calculate current parameters' volume
         curr_radius = bigger_cyl_size[1]
         curr_radius_inner = curr_radius - cylinder_wall_thickness
@@ -216,6 +231,7 @@ function json_based_can(ig, json_path, is_2d=true, is_debug=false)
         dispenser_len,
         dispenser_cross_section,
         dispenser_density,
+        dispenser_density,
         len_cut,
         menisc_radius,
         dual_phase_percentage,
@@ -231,8 +247,8 @@ function json_based_can(ig, json_path, is_2d=true, is_debug=false)
         curvature,
         tube_ball_fraction,
         rel_dist,
-        torus_height_factor, 
-        r_xy_small_factor, 
+        torus_height_factor,
+        r_xy_small_factor,
         r_z_small_factor
     )
 
@@ -607,7 +623,7 @@ Get the path to the temporary directory for saving phantom data.
 Path to the temporary directory
 """
 function get_temp_folder()
-    temp_dir = mktempdir() 
+    temp_dir = mktempdir(; cleanup=false)
     return temp_dir
 end
 
@@ -629,7 +645,7 @@ end
 """
     create_boolean_density_dict(name_type_list, density_map) -> Dict{String, Tuple{Array{Bool}, Array{Float32}}}
 
-Construct a dictionary where each key is an object name, and each value is a 
+Construct a dictionary where each key is an object name, and each value is a
 3‐element tuple of:
 1. A Boolean mask (true/false coverage).
 2. A Float32 mask scaled by the corresponding density.
@@ -640,7 +656,7 @@ Construct a dictionary where each key is an object name, and each value is a
 - `density_map`: A dictionary mapping object names to their densities.
 
 # Returns
-A dictionary where each key is the object name and each value is a tuple of 
+A dictionary where each key is the object name and each value is a tuple of
 (boolean_mask, float_mask × density, original_object).
 """
 function create_boolean_density_dict(name_type_list, density_map)
@@ -727,8 +743,8 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
     #to monitor how long it take
     curr_time = Dates.now()
     #unique name
-    #get random can 
-    
+    #get random can
+
     vol, args, density_map, name_type_list, double_bottom_curvature, rounded_bottom, first_ball, second_ball,add_pipe = random_can(ig, (dims[1] * spacing[1] * 0.9, dims[2] * spacing[2] * 0.9, dims[3] * spacing[3] * 0.9), is_2d, seed, spacing, true)
     if args_json_path != " "
 
@@ -741,7 +757,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
 
 
     save_args(args, vol, main_folder)
-    #get dictionary of phantoms 
+    #get dictionary of phantoms
     phantoms_dict = create_boolean_density_dict(name_type_list, density_map)
     result_tensor = zeros(dims)
     if (!rounded_bottom)
@@ -773,7 +789,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
 
 
     ## now we add the tilt to fluids of ob2_a and ob2_b
-    # we add to ob2_a part that is not present in ob2_a and oblique_middle_cut but is in straight 
+    # we add to ob2_a part that is not present in ob2_a and oblique_middle_cut but is in straight
     addded_ob2a = (.!(phantoms_dict["ob2_a"][1] .| phantoms_dict["oblique_middle_cut"][1])) .& phantoms_dict["straight_middle_cut"][1]
     #we add to ob2_b part that is not present in ob2_b but is in oblique and ob2_a
     addded_ob2b = ((.!(phantoms_dict["ob2_b"][1])) .& (phantoms_dict["oblique_middle_cut"][1])) .& phantoms_dict["straight_middle_cut"][1]
@@ -810,7 +826,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
     phantoms_dict["ob2_a"] = (new_ob2a_bool, new_ob2a_float32, ob2a_orig[3])
     phantoms_dict["ob2_b"] = (new_ob2b_bool, new_ob2b_float32, ob2b_orig[3])
 
-    #the cut above is a semicircle as we want to simulate miniscus 
+    #the cut above is a semicircle as we want to simulate miniscus
     ob_menisc_cut = ob_menisc_cut .& (phantoms_dict["ob2_a"][1] .| phantoms_dict["ob2_b"][1])
 
 
@@ -858,7 +874,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
         # result_tensor[phantoms_dict["new_torus"][1]].=0.0
         # result_tensor=result_tensor+phantoms_dict["new_torus"][2]
 
-        # result_tensor[phantoms_dict["inner_torus"][1]].=0.0               
+        # result_tensor[phantoms_dict["inner_torus"][1]].=0.0
 
     end
 
@@ -907,7 +923,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
         for angle in [0, 45, 90, 135, 180, 225, 270, 315]
             rotated_image = rotation3d(sitk.GetImageFromArray(result_tensor), 1, angle)
             im_arr = sitk.GetArrayFromImage(rotated_image)
-            
+
             # Create a linearly spaced vector for weighting along the first dimension
             incrr = range(0.5, stop=1.0, length=size(im_arr, 1))
             # Reshape to a (n,1,1) array so it broadcasts correctly
@@ -960,7 +976,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
         gaussian_kernel = Kernel.gaussian(σ)
         result_tensor = imfilter(result_tensor, gaussian_kernel)
         result_tensor = imfilter(result_tensor, gaussian_kernel)
-    end    
+    end
     # Multiply result_tensor by the noise factor
     result_tensor = result_tensor .* (rand(size(result_tensor)))
     result_tensor = result_tensor .+ (rand(size(result_tensor)))
@@ -998,7 +1014,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
         fluid_mask .&= .!phantoms_dict["ball2"][1]
     end
     if(add_pipe)
-        fluid_mask = fluid_mask .& (.!phantoms_dict["pipe"][1])     
+        fluid_mask = fluid_mask .& (.!phantoms_dict["pipe"][1])
 
     end
     fluid_mask = fluid_mask .& (.!phantoms_dict["ob_cut_orig"][1])
@@ -1011,11 +1027,11 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
     end
     #add inside pipe
     if(add_pipe)
-        pipe_inn_=(phantoms_dict["calc_cyl"][1].& phantoms_dict["pipe_in"][1])   
-        fluid_mask = fluid_mask .| pipe_inn_    
+        pipe_inn_=(phantoms_dict["calc_cyl"][1].& phantoms_dict["pipe_in"][1])
+        fluid_mask = fluid_mask .| pipe_inn_
         voxel_volume = spacing[1] * spacing[2] * spacing[3]
         print("\n nnnnnnnnnnn pipe_inn_ numerical $(sum(pipe_inn_)*voxel_volume) \n")
-        
+
 
     end
 
@@ -1135,9 +1151,9 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
     )
 
 
-    
 
-    
+
+
 
 
     # Store original state for meniscus volume calculation
@@ -1208,12 +1224,18 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
     run(`zip -r $zip_path $main_folder`)
     # Ensure the Google Cloud Storage folder exists
     file_name = "can_is_2D_$(is_2d)_is_radon_$(add_radon)_$(dims[1])|$(dims[2])|$(dims[3])_$uuid"
-    command = `gcloud storage cp $zip_path gs://metro_tk_kplayground/cansx128/$file_name`
-    # Execute the command
-    run(command)
-    rm(main_folder; force=true, recursive=true) 
-    rm(zip_path; force=true) 
 
+    if !haskey(ENV, "SKIP_UPLOAD")
+        command = `gcloud storage cp $zip_path gs://metro_tk_kplayground/cansx128/$file_name`
+        # Execute the command
+        run(command)
+        rm(main_folder; force=true, recursive=true)
+        rm(zip_path; force=true)
+    else
+        println("Skipping upload and deletion for debugging/testing.")
+        println("Output stored in: $main_folder")
+        println("Zip stored in: $zip_path")
+    end
 
     return numerical_vol, analytical_vol, fluid_volume_numerical_my
 end
@@ -1242,7 +1264,7 @@ end
 # while(true)
 
 # uuid = UUIDs.uuid4()
-seed = abs(hash(uuid)) 
+seed = abs(hash(uuid))
 
 
     print("\n UUID: $uuid")
