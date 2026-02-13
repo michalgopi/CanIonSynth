@@ -9,9 +9,11 @@ println("Skipping setup_env.jl (already setup manually)...")
 const START_DIR = pwd()
 const SCRIPT_DIR = "in_docker_organized"
 
-function run_script_and_verify(script_name, args, check_files)
+function run_script_and_verify(script_name, args, check_files, description)
     println("\n---------------------------------------------------")
-    println("Testing $script_name with args: $args")
+    println("Testing $description")
+    println("Script: $script_name")
+    println("Args: $args")
 
     # We need to run from the directory where the script is to ensure imports work
     cd(SCRIPT_DIR)
@@ -21,6 +23,8 @@ function run_script_and_verify(script_name, args, check_files)
     run_uuid = string(UUIDs.uuid4())
     # Replace placeholder <uuid> in args
     final_args = replace.(args, "<uuid>" => run_uuid)
+    # Ensure JSON paths are absolute or relative to SCRIPT_DIR
+    # If json path starts with ../tests/configs, it should be correct relative to in_docker_organized/
 
     cmd = `julia $script_name $final_args`
 
@@ -38,16 +42,13 @@ function run_script_and_verify(script_name, args, check_files)
         process = run(pipeline(setenv(cmd, env), stdout=output_buffer, stderr=output_buffer))
 
         output_str = String(take!(output_buffer))
-        println("Script Output:\n", output_str)
+        # println("Script Output:\n", output_str)
 
         # Parse output to find the output directory
         # Look for "Output stored in: ..."
         m = match(r"Output stored in: (.+)", output_str)
         if m !== nothing
             output_dir = strip(m.captures[1])
-            open("debug_test_run.log", "a") do io
-                println(io, "Found output directory: '$output_dir'")
-            end
             println("Found output directory: '$output_dir'")
             flush(stdout)
 
@@ -56,15 +57,8 @@ function run_script_and_verify(script_name, args, check_files)
             for file in check_files
                 file_path = joinpath(output_dir, file)
                 if isfile(file_path)
-                    open("debug_test_run.log", "a") do io
-                        println(io, "[PASS] File exists: $file")
-                    end
                     println("[PASS] File exists: $file")
                 else
-                    open("debug_test_run.log", "a") do io
-                        println(io, "[FAIL] File missing: $file")
-                        println(io, "Checked path: '$file_path'")
-                    end
                     println("[FAIL] File missing: $file")
                     println("Checked path: '$file_path'")
                     all_files_exist = false
@@ -81,15 +75,6 @@ function run_script_and_verify(script_name, args, check_files)
                 rm(output_dir, recursive=true, force=true)
 
             else
-                open("debug_test_run.log", "a") do io
-                    println(io, "Contents of output directory $output_dir:")
-                    try
-                        foreach(line -> println(io, line), readdir(output_dir))
-                    catch e
-                        println(io, "Could not read directory: $e")
-                    end
-                end
-
                 println("Contents of output directory $output_dir:")
                 try
                     foreach(println, readdir(output_dir))
@@ -103,6 +88,8 @@ function run_script_and_verify(script_name, args, check_files)
         else
             println("WARNING: Could not find 'Output stored in:' message in output.")
             println("Cannot verify output files location.")
+            println("Full output for debugging:")
+            println(output_str)
             error("Verification failed: Could not locate output directory.")
         end
 
@@ -118,21 +105,76 @@ function run_script_and_verify(script_name, args, check_files)
 end
 
 @testset "Synthetic Data Generation Tests" begin
-    # Test Can Phantom
+
+    # --- CAN PHANTOM TESTS ---
+
+    # 1. Defaults (Random)
     # Args: dims add_radon variable_spacing uuid randomize add_smooth additive_noise [json_path]
-    # Example: 32x32x32 false false <uuid> false false 0.0
     run_script_and_verify(
         "main_create_phantom_can.jl",
         ["32x32x32", "false", "false", "<uuid>", "false", "false", "0.0"],
-        ["example_can.nii.gz", "fluid_mask.nii.gz", "argss.json"]
+        ["example_can.nii.gz", "fluid_mask.nii.gz", "argss.json"],
+        "Can Phantom - Default (Random)"
     )
 
-    # Test Ionic Chamber Phantom
-    # Args: dims add_radon variable_spacing uuid randomize add_smooth additive_noise [json_path]
-    # Example: 32x32x32 false false <uuid> false false 0.0
+    # 2. With Radon Transform
+    run_script_and_verify(
+        "main_create_phantom_can.jl",
+        ["32x32x32", "true", "false", "<uuid>", "false", "false", "0.0"],
+        ["example_can.nii.gz", "fluid_mask.nii.gz", "after_radon.nii.gz", "after_radon_plus_before.nii.gz"],
+        "Can Phantom - With Radon Transform"
+    )
+
+    # 3. With Smoothing and Noise
+    run_script_and_verify(
+        "main_create_phantom_can.jl",
+        ["32x32x32", "false", "false", "<uuid>", "false", "true", "0.1"],
+        ["example_can.nii.gz"],
+        "Can Phantom - With Smoothing and Noise"
+    )
+
+    # 4. From JSON Configuration
+    # Note: path relative to in_docker_organized/
+    run_script_and_verify(
+        "main_create_phantom_can.jl",
+        ["32x32x32", "false", "false", "<uuid>", "false", "false", "0.0", "../tests/configs/can_phantom.json"],
+        ["example_can.nii.gz", "argss.json"],
+        "Can Phantom - From JSON Config"
+    )
+
+
+    # --- IONIC CHAMBER TESTS ---
+
+    # 1. Defaults (Random)
     run_script_and_verify(
         "main_create_phantom_ionic_chamber.jl",
         ["32x32x32", "false", "false", "<uuid>", "false", "false", "0.0"],
-        ["ionic_chamber.nii.gz", "ionic_chamber_params.json"]
+        ["ionic_chamber.nii.gz", "ionic_chamber_params.json"],
+        "Ionic Chamber - Default (Random)"
     )
+
+    # 2. With Radon Transform
+    run_script_and_verify(
+        "main_create_phantom_ionic_chamber.jl",
+        ["32x32x32", "true", "false", "<uuid>", "false", "false", "0.0"],
+        ["ionic_chamber.nii.gz", "after_radon.nii.gz"],
+        "Ionic Chamber - With Radon Transform"
+    )
+
+    # 3. Variable Spacing
+    run_script_and_verify(
+        "main_create_phantom_ionic_chamber.jl",
+        ["32x32x32", "false", "true", "<uuid>", "false", "false", "0.0"],
+        ["ionic_chamber.nii.gz"],
+        "Ionic Chamber - Variable Spacing"
+    )
+
+    # 4. From JSON Configuration
+    run_script_and_verify(
+        "main_create_phantom_ionic_chamber.jl",
+        ["32x32x32", "false", "false", "<uuid>", "false", "false", "0.0", "../tests/configs/ionic_chamber.json"],
+        ["ionic_chamber.nii.gz", "ionic_chamber_params.json"],
+        "Ionic Chamber - From JSON Config"
+    )
+
 end

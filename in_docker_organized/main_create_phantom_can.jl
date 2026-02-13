@@ -231,7 +231,6 @@ function json_based_can(ig, json_path, is_2d=true, is_debug=false)
         dispenser_len,
         dispenser_cross_section,
         dispenser_density,
-        dispenser_density,
         len_cut,
         menisc_radius,
         dual_phase_percentage,
