@@ -95,10 +95,10 @@ function rotation3d(image, axis, theta)
     #     axis_angle = (direction[1], direction[4], direction[7], theta)
     # elseif (axis==1)
     #     axis_angle = (direction[0], direction[3], direction[6], theta)
-    # end    
+    # end
     # np_rot_mat = matrix_from_axis_angle(axis_angle)
     # euler_transform.SetMatrix([np_rot_mat[0][0],np_rot_mat[0][1],np_rot_mat[0][2]
-    #                             ,np_rot_mat[1][0],np_rot_mat[1][1],np_rot_mat[1][2] 
+    #                             ,np_rot_mat[1][0],np_rot_mat[1][1],np_rot_mat[1][2]
     #                             ,np_rot_mat[2][0],np_rot_mat[2][1],np_rot_mat[2][2] ])
     resampled_image = resample(image, euler_transform)
     return resampled_image
@@ -153,7 +153,15 @@ function save_sitk_image_as_dicom(img, output_folder::String)
     # 4) Construct and run the Python command
     cmd = `nii2dcm $tmp_nifti_path $output_folder -d MR` # -d MR
 
-    run(cmd)
+    try
+        if Sys.which("nii2dcm") !== nothing
+            run(cmd)
+        else
+            println("Warning: nii2dcm not found in path. Skipping DICOM conversion.")
+        end
+    catch e
+        println("Warning: Failed to run nii2dcm: $e")
+    end
 
     # 5) Remove the temporary NIfTI
     rm(tmp_nifti_path, force=true)
@@ -163,7 +171,7 @@ end
 """
     get_per_slice_reconstruction_parallel(arr)::Array{Float32,3}
 
-Reconstructs each slice of `arr` in parallel using radon/iradon transforms and 
+Reconstructs each slice of `arr` in parallel using radon/iradon transforms and
 stores the result in a preallocated 3D array of Float32 with the same shape as `arr`.
 """
 function get_per_slice_reconstruction(arr)
@@ -302,7 +310,7 @@ function convert_nifti_to_dicom_seg(nifti_path::String, reference_dicom_path::St
     # Ensure nifti_to_dicom_seg.py is in the correct path
     # script_path = "/workspaces/synthethic_tomo/src/organised/nifti_to_dicom_seg.py"
     script_path = joinpath(@__DIR__, "nifti_to_dicom_seg.py")
-    
+
     if !isfile(script_path)
         println("Warning: nifti_to_dicom_seg.py script not found at $(script_path)")
         return false
@@ -334,17 +342,17 @@ function rotate_and_retrieve_array(array, axis, theta)
 end
 
 """
-Function to move the image represented as boolean array in given axis up or down 
-The axis will be given as an argument as well as distance and direction ("up" or "down") 
+Function to move the image represented as boolean array in given axis up or down
+The axis will be given as an argument as well as distance and direction ("up" or "down")
 distance will be given in centimiters, spacing in centimiters need also to be taken into account
 Goal is to move the image up or down in the given axis do it by removing layers of voxels from one side and adding them to the other side of the given axis
-How many layers you will calculate from given distance and spacing for given axis. 
+How many layers you will calculate from given distance and spacing for given axis.
 
  move_image(
-        array::Array{Bool,3}, 
-        axis::Int, 
-        distance::Float64, 
-        direction::String, 
+        array::Array{Bool,3},
+        axis::Int,
+        distance::Float64,
+        direction::String,
         spacing::Tuple{Float64,Float64,Float64}
     ) -> Array{Bool,3}
 
@@ -366,8 +374,8 @@ A new boolean array with the image moved to the new position
 moved_array = move_image(array, 3, 0.5, "up", (0.1, 0.1, 0.1))
 
 """
-function move_image( array, axis::Int, distance::Float64, direction::String, spacing::Tuple{Float64,Float64,Float64} )::Array{Bool,3} 
-    # Check if axis is valid 
+function move_image( array, axis::Int, distance::Float64, direction::String, spacing::Tuple{Float64,Float64,Float64} )::Array{Bool,3}
+    # Check if axis is valid
 if !(axis in 1:3) error("Axis must be 1 (x), 2 (y), or 3 (z)") end
 # Check if direction is valid
 if !(direction in ["up", "down"])
