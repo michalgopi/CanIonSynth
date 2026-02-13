@@ -90,20 +90,73 @@ julia in_docker_organized/main_create_phantom_ionic_chamber.jl <dims> <add_radon
 
 For reproducible simulations, parameters can be supplied via a JSON file.
 
-**Key JSON Parameters (Can Phantom):**
-*   `center_cylinder`: [x, y, z] coordinates.
-*   `bigger_cyl_size`: [radius, radius, height].
-*   `cylinder_wall_thickness`: Thickness of the can wall.
-*   `density_inside`: Density of the fluid.
-*   `pipe_len`, `pipe_cross_section`: Dimensions of the internal pipe.
-*   `rounded_bottom`: Boolean, enables rounded bottom geometry.
-*   `dual_phase_percentage`: Float (0-1), ratio of the two fluid phases.
+#### Can Phantom Parameters
+The JSON object for the can phantom allows for fine-grained control over geometry and fluids.
 
-**Key JSON Parameters (Ionic Chamber):**
-*   `graphite_density`, `copper_density`, etc.: Material densities.
-*   `total_len`, `base_len`, `main_radius`: Overall dimensions.
-*   `square_top`, `ball_like`, `lolipop_like`: Boolean flags for shape variants.
-*   `air_thickness`: Thickness of the air cavity (critical for metrology).
+*   **Geometry & Positioning:**
+    *   `center_cylinder`: `[x, y, z]` coordinates of the can center.
+    *   `bigger_cyl_size`: `[radius_x, radius_y, height]` of the main can body.
+    *   `spacing`: `[dx, dy, dz]` Voxel spacing in cm.
+    *   `angle`: Rotation angle of the entire object.
+*   **Can Structure:**
+    *   `cylinder_wall_thickness`: Thickness of the can walls.
+    *   `rounded_bottom`: `true`/`false`. If true, the can has a rounded bottom.
+    *   `cylinder_bottom_curvature`, `cylinder_bottom_curvature_b`: Curvature parameters for the bottom.
+    *   `cylinder_top_curvature`: Curvature parameter for the top.
+*   **Fluids (Critical for Metrology):**
+    *   `density_inside`: Density of the primary fluid.
+    *   `dual_phase_percentage`: Ratio (0.0 - 1.0). If < 1.0, a second fluid phase is added.
+    *   `density_inside_b`: Density of the second fluid phase.
+    *   `len_cut`: Length of the "cut" (meniscus tilt) at the top of the fluid.
+    *   `x_cut_angle`, `y_cut_angle`: Tilt angles for the fluid surface (simulating a tilted can).
+    *   `menisc_radius`: Radius of the meniscus curvature.
+*   **Internal Objects:**
+    *   `add_pipe`: `true`/`false`. Adds a central pipe.
+    *   `pipe_len`, `pipe_cross_section`, `pipe_density`: Dimensions and density of the pipe.
+    *   `plastic_dispenser`: Configuration for a dispenser mechanism.
+    *   `first_ball`, `second_ball`: `true`/`false`. Adds spherical objects to the fluid.
+
+#### Ionic Chamber Parameters
+These parameters define the multi-layered structure of the chamber.
+
+*   **Chamber Type:**
+    *   `square_top`: `true`/`false`. Flat top.
+    *   `ball_like`: `true`/`false`. Spherical top.
+    *   `lolipop_like`: `true`/`false`. Flat head with thin stem.
+    *   `rounded_top`: `true`/`false`. Standard rounded top.
+    *   `new_flat_sizes`: `true`/`false`. Uses standardized dimensions (see `rand_ver`).
+    *   `rand_ver`: Integer (1-3). Selects specific standard size presets if `new_flat_sizes` is true.
+*   **Dimensions:**
+    *   `total_len`: Total length of the chamber.
+    *   `base_len`: Length of the base/stem.
+    *   `main_radius`: Outer radius of the main chamber.
+    *   `air_thickness`: Thickness of the air cavity (gap between electrodes).
+*   **Material Densities:**
+    *   `graphite_density`, `copper_density`, `aluminium_density`, `insulation_density`.
+*   **Internal Components:**
+    *   `copper_radius`, `graphite_electrode_radius`: Radii of electrodes.
+    *   `inner_insluation_thickness`, `outer_insluation_thickness`: Thickness of insulation layers.
+    *   `aluminium_inner_thicness`, `aluminium_outer_thicness`: Thickness of shielding.
+    *   `add_spiral`: `true`/`false`. Adds a spiral structure to the outer aluminum layer.
+
+## External Services Configuration
+
+### WandB (Weights & Biases)
+The scripts use `wandb` for logging run information.
+*   **Project Name:** Hardcoded as `"synth"`.
+*   **Authentication:** The script does not explicitly set the API key. You must ensure the environment is authenticated:
+    *   Run `wandb login <your_api_key>` in the terminal before execution.
+    *   Or set the `WANDB_API_KEY` environment variable.
+
+### Google Cloud Storage
+The scripts automatically upload results to Google Cloud Storage buckets.
+*   **Bucket URLs:**
+    *   Can Phantom: `gs://metro_tk_kplayground/cansx128/`
+    *   Ionic Chamber: `gs://metro_tk_kplayground/ionic-chambersx128/`
+*   **Configuration:**
+    *   The `gcloud` CLI tool must be installed and authenticated in the environment.
+    *   The user/service account must have write permissions to the specified buckets.
+    *   To modify the bucket URL, you must edit the `command` string in the `get_random_can_uploaded` (can) or `get_random_chamber` (ionic) functions.
 
 ## Output Structure
 
