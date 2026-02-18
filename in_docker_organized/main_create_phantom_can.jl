@@ -19,10 +19,7 @@ randomize = parse(Bool, ARGS[5])
 add_smooth = parse(Bool, ARGS[6])
 additive_noise = parse(Float64, ARGS[7])
 
-
-
 args_json_path = length(ARGS) >= 8 ? ARGS[8] : " "
-
 
 print("\n dims $dims add_radon $add_radon add_smooth $add_smooth additive_noise $additive_noise \n")
 
@@ -47,7 +44,7 @@ using ImagePhantoms
 import ImagePhantoms
 using Accessors
 using ImageFiltering
-using Random  # Add this line to import the Random module
+using Random
 
 # Import external packages with pyimport_conda
 sitk = pyimport_conda("SimpleITK", "simpleitk")
@@ -82,21 +79,11 @@ const global ImagePhantoms.IRREGULARITY = 0.3
 # Import volume calculation function
 includet("volume_integration.jl")
 
-
-
-
-
 #get size of the generated image
-
 max_len = 10.0
 max_radius = 5.0
 is_2d = true
 
-
-# add_radon = false
-# dims = (128, 128, 128)
-
-# dims = (1024,1024 , 500)
 #maximal size in z dim
 max_z = (max_len) * 1.6
 #maximal size in x or y  dim
@@ -106,8 +93,6 @@ spacing = (max_y_x / dims[1], max_y_x / dims[2], max_z / dims[3])
 spacing = (maximum(spacing), maximum(spacing), maximum(spacing))
 
 ig = ImageGeom(dims=dims, deltas=(spacing[1]cm, spacing[2]cm, spacing[3]cm))
-# global_logger(lg)
-
 
 function json_based_can(ig, json_path, is_2d=true, is_debug=false)
     # Load parameters from the JSON file
@@ -285,10 +270,6 @@ function json_based_can(ig, json_path, is_2d=true, is_debug=false)
         density_map, name_type_list, double_bottom_curvature, rounded_bottom, first_ball, second_ball, add_pipe)
 end
 
-
-
-# wandb.log(Dict("setting up wandb process"=>uuid_main ))
-
 """
     random_can(ig, image_size_cm, is_2d, seed, is_debug=false) -> Tuple
 
@@ -316,8 +297,6 @@ function random_can(ig, image_size_cm, is_2d, seed, spacing, is_debug=false)
     # Define the exact minimum and maximum values from debugging calculations
     MIN_HEIGHT = 0.8 * max_len
     MIN_RADIUS_FACTOR = 0.25  # min_radius = min_height * 0.25
-
-
 
     MIN_LEN_CUT_FACTOR = 0.15 # min_len_cut = min_height * 0.45
 
@@ -358,8 +337,6 @@ function random_can(ig, image_size_cm, is_2d, seed, spacing, is_debug=false)
     cut_factor = MAX_LEN_CUT_FACTOR + rand(rng) * (MIN_LEN_CUT_FACTOR - MAX_LEN_CUT_FACTOR)
     len_cut = cut_factor * bigger_cyl_size[3]
     menisc_radius = bigger_cyl_size[2]
-
-
 
     cylinder_bottom_curvature = rand(rng, 0.05:0.1) * bigger_cyl_size[3]
     cylinder_bottom_curvature_b = cylinder_bottom_curvature * rand(rng, 1.8:0.1:2.3)
