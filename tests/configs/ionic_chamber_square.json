@@ -1,0 +1,10 @@
+{
+    "uuid": "square-test",
+    "dims": [32, 32, 32],
+    "lolipop_like": false,
+    "ball_like": false,
+    "square_top": true,
+    "rounded_top": false,
+    "variable_spacing": false,
+    "seed": 11111
+}

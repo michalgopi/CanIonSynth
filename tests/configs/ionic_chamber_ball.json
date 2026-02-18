@@ -1,0 +1,10 @@
+{
+    "uuid": "ball-test",
+    "dims": [32, 32, 32],
+    "lolipop_like": false,
+    "ball_like": true,
+    "square_top": false,
+    "rounded_top": false,
+    "variable_spacing": false,
+    "seed": 67890
+}
