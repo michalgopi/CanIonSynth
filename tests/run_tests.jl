@@ -20,7 +20,19 @@ function run_script_and_verify(script_name, args, check_files, description)
 
     # Construct command
     # We use a UUID for the run
-    run_uuid = string(UUIDs.uuid4())
+    # For reproducibility during comparison, we use a deterministic UUID based on the description if requested
+    if haskey(ENV, "FIXED_UUIDS")
+        # simple deterministic uuid based on description
+        # We just need it to be consistent across runs
+        # Use a hash of the description to generate a UUID-like string
+        h = hash(description)
+        # simplistic fake uuid
+        run_uuid = string(UUIDs.uuid5(UUIDs.UUID("00000000-0000-0000-0000-000000000000"), description))
+        println("Using fixed UUID: $run_uuid")
+    else
+        run_uuid = string(UUIDs.uuid4())
+    end
+
     # Replace placeholder <uuid> in args
     final_args = replace.(args, "<uuid>" => run_uuid)
     # Ensure JSON paths are absolute or relative to SCRIPT_DIR
@@ -69,6 +81,20 @@ function run_script_and_verify(script_name, args, check_files, description)
             if all_files_exist
                 println("SUCCESS: All expected files found.")
                 flush(stdout)
+
+                # Save outputs if requested
+                save_dir = get(ENV, "SAVE_OUTPUTS_TO", "")
+                if !isempty(save_dir)
+                    # Create a safe name for the test case
+                    safe_desc = replace(description, r"[^a-zA-Z0-9_]" => "_")
+                    target_dir = joinpath(save_dir, safe_desc)
+                    mkpath(target_dir)
+                    println("Saving outputs to: $target_dir")
+
+                    for file in readdir(output_dir)
+                        cp(joinpath(output_dir, file), joinpath(target_dir, file); force=true)
+                    end
+                end
 
                 # Cleanup
                 println("Cleaning up output directory...")
