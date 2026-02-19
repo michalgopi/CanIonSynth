@@ -1,7 +1,7 @@
 using Unitful: cm
 using ImagePhantoms
 import ImagePhantoms as IP
-import Unitful
+using Unitful
 using LinearAlgebra
 using PyCall
 
