@@ -157,6 +157,7 @@ The scripts automatically upload results to Google Cloud Storage buckets.
     *   The `gcloud` CLI tool must be installed and authenticated in the environment.
     *   The user/service account must have write permissions to the specified buckets.
     *   To modify the bucket URL, you must edit the `command` string in the `get_random_can_uploaded` (can) or `get_random_chamber` (ionic) functions.
+    *   **Skipping Uploads:** Set the environment variable `SKIP_UPLOAD=true` to bypass this step (useful for local testing).
 
 ## Output Structure
 
