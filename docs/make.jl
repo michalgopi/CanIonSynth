@@ -17,5 +17,5 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/jakubMitura14/SyntheticTomo.git", # This should be updated by the user to their repo
+    repo = "github.com/jakubMitura14/synth_data_generation.git",
 )
