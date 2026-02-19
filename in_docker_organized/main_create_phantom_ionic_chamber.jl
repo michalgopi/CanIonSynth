@@ -32,7 +32,6 @@ using Pkg
 using Sinograms: SinoPar, rays, plan_fbp, fbp, fbp_sino_filter, CtFanArc, CtFanFlat, Window, Hamming, fdk, ct_geom_plot3, project_bdd, backproject_bdd
 using ImageGeoms: ImageGeom, fovs, MaskCircle, axesf
 using ImagePhantoms: SheppLogan, shepp_logan, radon, phantom, Object, spectrum, Cylinder, cylinder, ellipsoid_parameters, ellipsoid, Ellipsoid, Cuboid
-using Unitful
 using Unitful: mm, unit, °, cm
 using MIRTjim: jim, prompt, mid3
 using FFTW: fft, fftshift, ifftshift
