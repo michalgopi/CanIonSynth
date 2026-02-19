@@ -38,7 +38,7 @@ function run_script_and_verify(script_name, args, check_files, description)
     # Ensure JSON paths are absolute or relative to SCRIPT_DIR
     # If json path starts with ../tests/configs, it should be correct relative to in_docker_organized/
 
-    cmd = `julia $script_name $final_args`
+    cmd = `julia --project=$START_DIR $script_name $final_args`
 
     # Set environment variables to skip upload/wandb
     env = copy(ENV)

@@ -22,7 +22,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install SimpleITK wandb adrt h5py scikit-image pydicom nibabel matplotlib numpy
+          pip install -r requirements.txt
 
       - name: Set up Julia
         uses: julia-actions/setup-julia@v1
@@ -34,7 +34,7 @@ jobs:
 
       - name: Install Julia dependencies
         run: |
-          julia tests/setup_env.jl
+          julia --project=. tests/setup_env.jl
 
       - name: Run Tests
         env:
@@ -42,4 +42,4 @@ jobs:
           SKIP_UPLOAD: true
           FIXED_UUIDS: 1
         run: |
-          julia tests/run_tests.jl
+          julia --project=. tests/run_tests.jl
