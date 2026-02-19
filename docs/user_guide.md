@@ -13,39 +13,92 @@ This guide provides detailed instructions on how to use the Synthetic Tomographi
     *   [JSON Configuration](#json-configuration)
 5.  [Testing & Verification](#testing--verification)
 6.  [Output Artifacts](#output-artifacts)
-7.  [Troubleshooting](#troubleshooting)
+7.  [Environment Setup](#environment-setup)
+8.  [Troubleshooting](#troubleshooting)
 
 ---
 
-## Prerequisites & Installation
+## Environment Setup
 
-### Core Requirements
-*   **Julia (v1.10+)**: The core simulation logic is written in Julia.
-*   **Python (v3.10+)**: Used for DICOM conversion, logging, and visualization.
-*   **Google Cloud CLI (`gcloud`)**: Required for uploading artifacts (unless skipped).
+You can set up the environment using either Docker (recommended for consistency) or a manual local installation.
 
-### Julia Dependencies
-This project relies on several Julia packages, including a custom version of `ImagePhantoms`.
+### Option 1: Using Docker / Dev Container (Recommended)
 
-To install dependencies, you can use the provided setup script:
+This repository includes a `Dockerfile` and Dev Container configuration, making it easy to get started with a pre-configured environment that includes all Julia and Python dependencies, as well as system tools like `nii2dcm` and `gcloud`.
+
+#### Using VS Code Dev Containers
+1.  Open the repository in VS Code.
+2.  Install the **Dev Containers** extension.
+3.  When prompted "Reopen in Container", select **Reopen**.
+4.  VS Code will build the Docker image and start the container. This may take a few minutes.
+5.  Once inside, all tools (`julia`, `python`, `nii2dcm`) are available in the terminal.
+
+#### Manual Docker Build
+If you prefer to run the Docker container manually:
+
+1.  **Build the image:**
+    ```bash
+    docker build -t synthetic-tomo .
+    ```
+2.  **Run the container:**
+    ```bash
+    docker run -it --rm -v $(pwd):/workspace synthetic-tomo /bin/bash
+    ```
+    *Note: The `Dockerfile` sets the working directory to `/root/.devcontainer`. You might want to navigate to `/workspace` or wherever you mounted your code.*
+
+### Option 2: Manual Local Setup
+
+If you cannot use Docker, follow these steps to set up the environment on your local machine (Linux/macOS recommended).
+
+#### 1. System Requirements
+*   **Julia:** Install Julia v1.10 or later from [julialang.org](https://julialang.org/downloads/).
+*   **Python:** Install Python 3.10 or later.
+*   **Google Cloud SDK:** Install `gcloud` CLI if you intend to upload results.
+*   **DICOM Tools (Optional):** Install `nii2dcm` if you need DICOM output.
+    *   *Note: The Dockerfile builds `nii2dcm` from source (https://github.com/tomaroberts/nii2dcm), but standard `dcmtk` tools might also be sufficient depending on your needs.*
+
+#### 2. Python Environment
+Create a virtual environment to isolate dependencies:
+
 ```bash
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install required packages
+pip install SimpleITK wandb adrt h5py scikit-image pydicom nibabel matplotlib numpy==1.23.2
+```
+*Note: `numpy` version is pinned in Dockerfile to 1.23.2, but newer versions may work depending on `adrt` compatibility.*
+
+#### 3. Julia Environment
+Install the required Julia packages. A setup script is provided for convenience:
+
+```bash
+# Run the setup script
 julia tests/setup_env.jl
 ```
-Or manually install them:
+
+**Manual Julia Setup details:**
+The `ImagePhantoms` package must be installed from a specific Git repository, not the general registry.
+
 ```julia
 using Pkg
+# Install custom ImagePhantoms
 Pkg.add(url="https://github.com/jakubMitura14/ImagePhantoms.jl.git")
-Pkg.add(["Sinograms", "ImageGeoms", "Unitful", "MIRTjim", "FFTW", "LazyGrids", "Plots", "PyCall", "JSON", "ImageFiltering", "Accessors"])
+
+# Install registered packages
+Pkg.add([
+    "Meshes", "ImageFiltering", "Accessors", "UUIDs", "JSON", "HDF5",
+    "MIRTjim", "ImageGeoms", "Sinograms", "PyCall", "FFTW", "LazyGrids",
+    "Unitful", "Plots", "Revise"
+])
 ```
 
-### Python Dependencies
-Install the required Python packages:
+#### 4. Verification
+Run the small test suite to ensure everything is configured correctly:
 ```bash
-pip install SimpleITK numpy wandb scikit-image adrt matplotlib nibabel
+julia tests/run_tests_small.jl
 ```
-
-### System Tools
-*   **nii2dcm**: Part of `dcmtk` or similar suites, used to convert NIfTI files to DICOM. If missing, the scripts will skip DICOM conversion but still generate NIfTI files.
 
 ---
 
