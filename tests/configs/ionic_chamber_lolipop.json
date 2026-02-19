@@ -1,0 +1,10 @@
+{
+    "uuid": "lolipop-test",
+    "dims": [32, 32, 32],
+    "lolipop_like": true,
+    "ball_like": false,
+    "square_top": false,
+    "rounded_top": false,
+    "variable_spacing": false,
+    "seed": 12345
+}

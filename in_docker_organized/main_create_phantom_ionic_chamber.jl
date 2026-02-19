@@ -1,4 +1,5 @@
 #!/usr/bin/env julia
+__precompile__(false)
 
 # Parse arguments for dims and add_radon
     dims_str = split(ARGS[1], "x")
@@ -18,9 +19,9 @@
 
     add_smooth = parse(Bool, ARGS[6])
     additive_noise = parse(Float64, ARGS[7])
-    
-    
-    
+
+
+
     args_json_path = length(ARGS) >= 8 ? ARGS[8] : " "
 
 # __precompile__(false)  # Add this at the very top
@@ -31,6 +32,7 @@ using Pkg
 using Sinograms: SinoPar, rays, plan_fbp, fbp, fbp_sino_filter, CtFanArc, CtFanFlat, Window, Hamming, fdk, ct_geom_plot3, project_bdd, backproject_bdd
 using ImageGeoms: ImageGeom, fovs, MaskCircle, axesf
 using ImagePhantoms: SheppLogan, shepp_logan, radon, phantom, Object, spectrum, Cylinder, cylinder, ellipsoid_parameters, ellipsoid, Ellipsoid, Cuboid
+using Unitful
 using Unitful: mm, unit, °, cm
 using MIRTjim: jim, prompt, mid3
 using FFTW: fft, fftshift, ifftshift
@@ -51,9 +53,18 @@ using Random
 # Import external packages with pyimport_conda
 sitk = pyimport_conda("SimpleITK", "simpleitk")
 np = pyimport_conda("numpy", "numpy")
-wandb = pyimport_conda("wandb", "wandb")
 
-wandb.init(project="synth")
+if !haskey(ENV, "SKIP_WANDB")
+    wandb = pyimport_conda("wandb", "wandb")
+    wandb.init(project="synth")
+else
+    struct MockWandB
+        init::Function
+        log::Function
+    end
+    wandb = MockWandB((args...; kwargs...) -> nothing, (args...; kwargs...) -> nothing)
+end
+
 isinteractive() ? jim(:prompt, true) : prompt(:draw)
 includet.([
     "get_geometry_main.jl",
@@ -64,13 +75,13 @@ includet.([
 # Helper functions and docstrings
 
 
-#= 
+#=
 This program creates an image composed of several cylinders that share the same long axis.
 A "base" cylinder is defined with fixed center (c_x, c_y). All other cylinders are specified
 by a user-provided dictionary (with keys for density, radius, length, and beginning offset along the z‐axis).
-Each additional cylinder’s center z is computed relative to the base bottom, and its density is adjusted 
-to compensate for overlapping cylinders. When the z‐intervals (projections onto the long axis) of two cylinders 
-overlap, their densities add up. To display the desired density for each additional cylinder, the effective density 
+Each additional cylinder’s center z is computed relative to the base bottom, and its density is adjusted
+to compensate for overlapping cylinders. When the z‐intervals (projections onto the long axis) of two cylinders
+overlap, their densities add up. To display the desired density for each additional cylinder, the effective density
 passed to the cylinder constructor is computed as:
   actual_density = desired_density − sum(overlapping densities from previously defined cylinders)
 =#
@@ -122,7 +133,7 @@ end
 
 # Function to create a new cylinder given its specification dictionary
 """
-    create_cylinder(base_x::Float64, base_y::Float64, base_bottom_z::Float64, 
+    create_cylinder(base_x::Float64, base_y::Float64, base_bottom_z::Float64,
                     spec::Dict{String,Float64}) -> NamedTuple
 
 Create a cylinder using the specification in `spec` and the base cylinder position.
@@ -352,20 +363,20 @@ function get_cyl_obj(new_cyl, ig, spacing)
         ob_el = half_sphere_z((new_cyl.c_x)cm, (new_cyl.c_y)cm, (new_cyl.c_z - new_cyl.l_z / 2)cm,
             (new_cyl.l_x)cm, (new_cyl.l_x)cm, (new_cyl.l_z)cm,
             0, 0, 0, new_cyl.d)
-        voll=IP.volume(ob_el)    
+        voll=IP.volume(ob_el)
         ob_el = (phantom(axes(ig)..., [ob_el]) .!= 0)
     elseif new_cyl.is_ellipsoid
         ob_el = ellipsoid((new_cyl.c_x)cm, (new_cyl.c_y)cm, (new_cyl.c_z)cm,
             (new_cyl.l_x)cm, (new_cyl.l_y)cm, (new_cyl.l_z)cm,
             0, 0, 0, new_cyl.d)
-        voll=IP.volume(ob_el)        
+        voll=IP.volume(ob_el)
         ob_el = (phantom(axes(ig)..., [ob_el]) .!= 0)
     else
         ob_el = ImagePhantoms.cylinder((new_cyl.c_x)cm, (new_cyl.c_y)cm, (new_cyl.c_z)cm,
             (new_cyl.l_x)cm, (new_cyl.l_x)cm, (new_cyl.l_z)cm,
             0, 0, 0, new_cyl.d)
 
-        voll=IP.volume(ob_el)    
+        voll=IP.volume(ob_el)
         ob_el = phantom(axes(ig)..., [ob_el])
 
         ob_el = (ob_el + reverse(ob_el, dims=1)) .!= 0
@@ -941,23 +952,23 @@ function json_params(args_json_path, uuid=nothing, dims=(128, 128, 128))
 
     # Extract dimensions from JSON or use default
     dims = haskey(params, "dims") ? params["dims"] : dims
-    
+
     # Extract or set default values for all parameters
     graphite_density = get(params, "graphite_density", 1.0)
     copper_density = get(params, "copper_density", 2.67)
     aluminium_density = get(params, "aluminium_density", 1.2)
     insulation_density = get(params, "insulation_density", 0.13)
-    
+
     square_top = get(params, "square_top", false)
     ball_like = get(params, "ball_like", false)
     lolipop_like = get(params, "lolipop_like", false)
     rounded_top = get(params, "rounded_top", false)
-    
+
     add_graphite_in_copper = get(params, "add_graphite_in_copper", false)
     add_spiral = get(params, "add_spiral", false)
     elongate_copper = get(params, "elongate_copper", false)
     new_flat_sizes = get(params, "new_flat_sizes", false)
-    
+
     total_len = get(params, "total_len", 2.65)
     base_len = get(params, "base_len", 0.8)
     main_radius = get(params, "main_radius", 0.625)
@@ -973,7 +984,7 @@ function json_params(args_json_path, uuid=nothing, dims=(128, 128, 128))
     theta_aluminium_outer = get(params, "theta_aluminium_outer", -1.0)
     graphite_electrode_connection_radius = get(params, "graphite_electrode_connection_radius", 0.15)
     graphite_electrode_thickness = get(params, "graphite_electrode_thickness", 0.1)
-    
+
     # Get spacing from JSON or calculate based on dimensions
     spacing = if haskey(params, "spacing")
         params["spacing"]
@@ -983,7 +994,7 @@ function json_params(args_json_path, uuid=nothing, dims=(128, 128, 128))
         spacing_calc = (max_y_x / dims[1], max_y_x / dims[2], max_z / dims[3])
         (maximum(spacing_calc), maximum(spacing_calc), maximum(spacing_calc))
     end
-    
+
     # Create and return the parameter dictionary
     result = Dict(
         "seed" => get(params, "seed", abs(hash(uuid))),
@@ -1019,12 +1030,12 @@ function json_params(args_json_path, uuid=nothing, dims=(128, 128, 128))
         "new_flat_sizes"=>new_flat_sizes,
         "rand_ver"=>get(params, "rand_ver", 1)
     )
-    
+
     # Print parameters for debugging
     for (key, value) in result
         println("$key => $value")
     end
-    
+
     return result
 end
 
@@ -1071,7 +1082,7 @@ Selected when rand_int == 3. Key parameters:
 Selected when rand_int == 4. Enables new_flat_sizes=true with predefined volume standards.
 - Creates chambers with exact volumes based on rand_ver (1-3):
   * Version 1 (rand_ver=1): 60,000 mm³, radius=20mm, height=48mm (largest)
-  * Version 2 (rand_ver=2): 30,000 mm³, radius=15mm, height=42.9mm (medium) 
+  * Version 2 (rand_ver=2): 30,000 mm³, radius=15mm, height=42.9mm (medium)
   * Version 3 (rand_ver=3): 10,000 mm³, radius=10mm, height=32.5mm (smallest)
 - Special parameters:
   * main_graphite_thickness: random between 0.01-0.05 cm
@@ -1124,7 +1135,7 @@ Parameters common to all chamber types (some with varying defaults):
 
 """
 function generate_random_params(uuid,dims::Tuple{Int,Int,Int}=(500, 500, 500), randomize=true,variable_spacing=false)
-    
+
 
     if(!variable_spacing)
         max_y_x = (3.0 * 1.2)#/10
@@ -1155,11 +1166,11 @@ function generate_random_params(uuid,dims::Tuple{Int,Int,Int}=(500, 500, 500), r
     # ball_like = false
     # lolipop_like = true
 
-    square_top = round(rand_int) == 1 
+    square_top = round(rand_int) == 1
     ball_like = round(rand_int) == 2
     lolipop_like = round(rand_int) == 3
     rounded_top = (round(rand_int) == 5)
-    new_flat_sizes = round(rand_int) == 4 
+    new_flat_sizes = round(rand_int) == 4
 
     rand_ver=rand(rng, 1:3)
 
@@ -1169,7 +1180,7 @@ function generate_random_params(uuid,dims::Tuple{Int,Int,Int}=(500, 500, 500), r
         lolipop_like=false
         square_top=rand() < 0.5
         rounded_top=!square_top
-    end    
+    end
 
 
 
@@ -1217,16 +1228,16 @@ function generate_random_params(uuid,dims::Tuple{Int,Int,Int}=(500, 500, 500), r
     #, szerokość wewnętrznej elektrody 1mm.
     #  zewnętrzny promień komory 25mm, wewnętrzny 22,25
     #, promień elektrody 20mm. elektroda jest ustawiona centrycznie
-    # zamocowana na trzpieniu 
-    #  o promieniu 1,5mm natomiast sama komora zamocowana 
+    # zamocowana na trzpieniu
+    #  o promieniu 1,5mm natomiast sama komora zamocowana
     #jest do trzebienia o promieniu 3,5mm.
     graphite_electrode_connection_radius = 1.5
     graphite_electrode_thickness = 1.0
-    
+
     if (lolipop_like)
         air_thickness = 6.0
         graphite_electrode_radius = 20.0
-        
+
         total_len = base_len + 25.0
         # graphite_density = graphite_density * 0.5
 
@@ -1284,7 +1295,7 @@ function generate_random_params(uuid,dims::Tuple{Int,Int,Int}=(500, 500, 500), r
         aluminium_outer_thicness = (aluminium_outer_thicness * scale_aluminium_outer_thicness) / 10.0
         graphite_electrode_connection_radius = (graphite_electrode_connection_radius * scale_graphite_electrode_connection_radius) / 10.0
         graphite_electrode_thickness = (graphite_electrode_thickness * scale_graphite_electrode_thickness) / 10.0
-        
+
 
         """
 to 60 000 mm3 mają wewnętrzny walec o promieniu 20mm, mniejsze 30 000mm3 o promieniu 15 mm
@@ -1301,12 +1312,12 @@ to 60 000 mm3 mają wewnętrzny walec o promieniu 20mm, mniejsze 30 000mm3 o pro
                 main_radius =(2.0*scale_main_radius)+main_graphite_thickness*2
                 main_part_len=(4.8*scale_total_len)
                 graphite_electrode_radius=0.15
-            end    
+            end
             if(rand_ver==2)
                 main_radius =(1.5*scale_main_radius)+main_graphite_thickness*2
                 main_part_len=(4.29*scale_total_len)
                 graphite_electrode_radius=0.15
-            end    
+            end
             if(rand_ver==3)
                 main_radius =(1.0*scale_main_radius)+main_graphite_thickness*2
                 main_part_len=(3.25*scale_total_len)
@@ -1418,7 +1429,7 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
     elseif (params["lolipop_like"])
         add_str="_lolipop_like"
     else
-        add_str="_rounded_top"        
+        add_str="_rounded_top"
     end
     add_str=add_str*"_variable_spacing_$(variable_spacing)_randomize_$(randomize)_add_radon_$(add_radon)_"
 
@@ -1429,8 +1440,8 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
     end
 
     phantom_image,res_raw ,air_bool, copper_el_bool, combined_bool_array_electrode,air_vol,air_volume_numerical,named_res = create_ionic_chamber_phantom(params)
- 
- 
+
+
     #### save raw data
     img = sitk.GetImageFromArray(Float32.(res_raw))
     img.SetSpacing((params["spacing"][1] * 10, params["spacing"][2] * 10, params["spacing"][3] * 10))
@@ -1440,8 +1451,8 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
     save_sitk_image_as_dicom(sitk.ReadImage("$main_folder/ionic_chamber_raw.nii.gz"), reference_dicom_path)
 
 
- 
- 
+
+
     # Save air volume information to params
     params["air_vol"] = Unitful.ustrip(cm^3,air_vol)
     params["air_volume_numerical"] = air_volume_numerical
@@ -1466,7 +1477,7 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
 
     print(" \n add_radon $add_radon \n")
     if (add_radon)
-        print("\n execuuute radon \n")      
+        print("\n execuuute radon \n")
         # Execute the Python script using the run function
         input_path = "$(main_folder)/ionic_chamber.nii.gz"
         output_path = "$(main_folder)/after_radon.nii.gz"
@@ -1479,7 +1490,7 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
 
         save_sitk_image_as_dicom(sitk.ReadImage(output_path), "$(main_folder)/after_radon")
         save_sitk_image_as_dicom(sitk.ReadImage(output_path_b), "$(main_folder)/after_radon_plus_before")
-        print("\n finish  radon \n")      
+        print("\n finish  radon \n")
 
     end
 
@@ -1525,14 +1536,21 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
 
     zip_path = "$(temp_fold)/$(file_name).zip"
     run(`zip -r $zip_path $main_folder`)
-    command = `gcloud storage cp $zip_path gs://metro_tk_kplayground/ionic-chambersx128/$file_name`
-    # Execute the command
-    run(command)
-    rm(main_folder; force=true, recursive=true) 
-    rm(zip_path; force=true) 
+
+    if !haskey(ENV, "SKIP_UPLOAD")
+        command = `gcloud storage cp $zip_path gs://metro_tk_kplayground/ionic-chambersx128/$file_name`
+        # Execute the command
+        run(command)
+        rm(main_folder; force=true, recursive=true)
+        rm(zip_path; force=true)
+    else
+        println("Skipping upload and deletion for debugging/testing.")
+        println("Output stored in: $main_folder")
+        println("Zip stored in: $zip_path")
+    end
 
     return add_str
-end    
+end
 
 
 
@@ -1544,7 +1562,7 @@ end
 # while true
     # uuid = UUIDs.uuid4()
     # temp_fold="/workspaces/synthethic_tomo/data/debug/"
-    temp_fold = mktempdir()
+    temp_fold = mktempdir(; cleanup=false)
     # variable_spacing=true
     get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
 

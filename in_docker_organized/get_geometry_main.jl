@@ -1,36 +1,18 @@
-#https://juliaimagerecon.github.io/Sinograms.jl/stable/generated/examples/03-parallel-beam/
-using Sinograms: SinoPar, rays, plan_fbp, fbp, fbp_sino_filter
-using ImageGeoms: ImageGeom, fovs, MaskCircle
-using ImagePhantoms: SheppLogan, shepp_logan, radon, phantom
-using Unitful: mm
-using MIRTjim: jim, prompt
-using ImagePhantoms: Object, phantom, radon, spectrum
-using ImagePhantoms: Cylinder, cylinder, ellipsoid
+using Sinograms: SinoPar, rays, plan_fbp, fbp, fbp_sino_filter, CtFanArc, CtFanFlat, Window, Hamming, fdk, ct_geom_plot3
+using ImageGeoms: ImageGeom, fovs, MaskCircle, axesf
+using ImagePhantoms: SheppLogan, shepp_logan, radon, phantom, Object, spectrum, Cylinder, cylinder, ellipsoid, ellipsoid_parameters, sphere, half_sphere_x, half_sphere_y, half_sphere_z, half_sphere_z_b, Ellipsoid, Cuboid, cuboid, cylinder_irr
 import ImagePhantoms as IP
-using ImageGeoms: ImageGeom, axesf
+using Unitful: mm, unit, °, cm
 using MIRTjim: jim, prompt, mid3
 using FFTW: fft, fftshift, ifftshift
 using LazyGrids: ndgrid
-using Unitful: mm, unit, °
-using Plots: plot, plot!, scatter!, default
-using Plots # gif @animate
+using Plots: plot, plot!, scatter!, default, gui
 using PyCall
-import Unitful
-using Unitful
-using Plots: plot, gui
-using Unitful: cm
-using Sinograms: CtFanArc, CtFanFlat # CtPar
-using Sinograms: rays, plan_fbp, Window, Hamming, fdk, ct_geom_plot3
-using ImageGeoms: ImageGeom, MaskCircle, fovs
-using ImagePhantoms: ellipsoid_parameters, sphere, ellipsoid, half_sphere_x, half_sphere_y, half_sphere_z, half_sphere_z_b
-using ImagePhantoms: radon, phantom
-using MIRTjim: jim, prompt
-using ImagePhantoms: Ellipsoid, ellipsoid
-using ImagePhantoms: Cuboid, cuboid, cylinder_irr
-import ImagePhantoms as IP
 using Statistics, LinearAlgebra
 
 """
+    get_cylinder_bool_mask(ob_el, ig)
+
 get a phantom cylinder and return a boolean mask of it
 """
 function get_cylinder_bool_mask(ob_el, ig)
@@ -39,8 +21,6 @@ function get_cylinder_bool_mask(ob_el, ig)
     cyl_inner_bool = (pp + pp_reversed_1) .!= 0
     return cyl_inner_bool
 end
-
-
 
 """
     volume_of_elliptical_cylinder(pipe_cross_section, overlay_length) -> Float64
@@ -62,16 +42,10 @@ function volume_of_elliptical_cylinder(pipe_cross_section, overlay_length)
     return volume
 end
 
-
-
-#point_on_segment_at_distance
-
-
-
 """
     ellipsoid_segment_intersection(
         center_bottom_curvature::NTuple{3,Float64},
-        halph_s_bigger_size::NTuple{3,Float64}, 
+        halph_s_bigger_size::NTuple{3,Float64},
         p1::NTuple{3,Float64},
         p2::NTuple{3,Float64}
     ) -> Union{Nothing, NTuple{3,Float64}}
@@ -109,7 +83,7 @@ function ellipsoid_segment_intersection(
     dV = P2 .- P1
     px = P1 .- C
 
-    # Quadratic coefficients 
+    # Quadratic coefficients
     A = (dV[1]^2) / (Rx^2) + (dV[2]^2) / (Ry^2) + (dV[3]^2) / (Rz^2)
     B = 2.0 * ((px[1] * dV[1]) / (Rx^2) + (px[2] * dV[2]) / (Ry^2) + (px[3] * dV[3]) / (Rz^2))
     Cc = ((px[1]^2) / (Rx^2) + (px[2]^2) / (Ry^2) + (px[3]^2) / (Rz^2)) - 1.0
@@ -118,8 +92,6 @@ function ellipsoid_segment_intersection(
     disc = B^2 - 4.0 * A * Cc
     if disc < 0
         return nothing
-        print(" \n nnnno intersection \n ")
-
     end
 
     # Find intersection parameters
@@ -132,8 +104,6 @@ function ellipsoid_segment_intersection(
 
     if isempty(valid_t)
         return nothing
-        print(" \n nnnno intersection \n ")
-
     end
 
     # Get closest intersection to p1
@@ -150,17 +120,17 @@ function ellipsoid_segment_intersection(
     if abs(d1 + d2 - seg_len) < EPS
         return (P[1], P[2], P[3])
     end
-    print(" \n nnnno intersection \n ")
+
     return nothing
 end
 
 """
     random_line_pairs_on_cylinder(
-        c::NTuple{3,Float64}, 
-        r::Float64, 
-        h::Float64, 
-        d::Float64, 
-        w1::Float64, 
+        c::NTuple{3,Float64},
+        r::Float64,
+        h::Float64,
+        d::Float64,
+        w1::Float64,
         w2::Float64
     ) -> Tuple{NTuple{3,Float64}, NTuple{3,Float64}, NTuple{3,Float64}, NTuple{3,Float64}}
 
@@ -257,18 +227,18 @@ end
 
 """
     find_ball_positions(
-        center_cylinder::NTuple{3,Float64}, 
-        bigger_cyl_size::NTuple{3,Float64}, 
-        ball_radius::Float64, 
-        center_bottom_curvature::NTuple{3,Float64}, 
-        cylinder_bottom_curvature::Float64, 
-        w1::Float64, 
+        center_cylinder::NTuple{3,Float64},
+        bigger_cyl_size::NTuple{3,Float64},
+        ball_radius::Float64,
+        center_bottom_curvature::NTuple{3,Float64},
+        cylinder_bottom_curvature::Float64,
+        w1::Float64,
         w2::Float64
     ) -> Tuple{NTuple{3,Float64}, NTuple{3,Float64}}
 
 This function demonstrates how to compose calls to:
 1) `random_line_pairs_on_cylinder` to obtain two parallel lines in a cylinder.
-2) `point_on_segment_at_distance` to find points on these lines at a specified distance 
+2) `point_on_segment_at_distance` to find points on these lines at a specified distance
    from `center_bottom_curvature`.
 3) `point_on_line_by_distance` to shift each point further by `ball_radius`.
 
@@ -279,13 +249,13 @@ Steps:
    - `ball_radius` is passed as distance requirement
    - `w1`, `w2` are random weights in [0,1]
 2) Extract the two pairs of points: `(bottom1, top1, bottom2, top2)`.
-3) Call `point_on_segment_at_distance(center_bottom_curvature, bottom1, top1, (ball_radius*2) + cylinder_bottom_curvature)` 
+3) Call `point_on_segment_at_distance(center_bottom_curvature, bottom1, top1, (ball_radius*2) + cylinder_bottom_curvature)`
    to get `rp1`.
 4) Call `point_on_segment_at_distance(center_bottom_curvature, bottom2, top2, (ball_radius*2) + cylinder_bottom_curvature)`
    to get `rp2`.
-5) From each result (`rp1` and `rp2`), call `point_on_line_by_distance(rp, center_bottom_curvature, ball_radius)` to 
-   shift the point by `ball_radius` closer to `center_bottom_curvature`. 
-6) Return a tuple of these two final points, ensuring they are each exactly `ball_radius` away from the bottom half-sphere 
+5) From each result (`rp1` and `rp2`), call `point_on_line_by_distance(rp, center_bottom_curvature, ball_radius)` to
+   shift the point by `ball_radius` closer to `center_bottom_curvature`.
+6) Return a tuple of these two final points, ensuring they are each exactly `ball_radius` away from the bottom half-sphere
    and from the cylinder walls in the geometry context of the problem.
 """
 function find_ball_positions(
@@ -313,27 +283,8 @@ function find_ball_positions(
         w2
     )
 
-
-
-
-    # Calculate Euclidean distance between bottom1 and center_bottom_curvature
-    dist_bottom1_to_center = norm(collect(bottom1) .- collect(center_bottom_curvature))
-
-    # 3) Distance for point_on_segment_at_distance
-    dist_needed = (ball_radius * 2) + cylinder_bottom_curvature
-
-    # println("""
-    # Distance between bottom1 and center_bottom_curvature: $dist_bottom1_to_center 
-    # dist_needed $dist_needed 
-    # bottom1 $bottom1
-    # center_bottom_curvature $center_bottom_curvature
-    # cylinder_bottom_curvature $cylinder_bottom_curvature
-    # bigger_cyl_size $bigger_cyl_size
-
-    # """)
-
-    elipsoid_radiuses = (halph_s_bigger_size[1] + ball_radius * 2, halph_s_bigger_size[2] + ball_radius * 2, halph_s_bigger_size[3] + ball_radius * 2)
     # 4) Find rp1 on the segment (bottom1, top1) at distance dist_needed from center_bottom_curvature
+    elipsoid_radiuses = (halph_s_bigger_size[1] + ball_radius * 2, halph_s_bigger_size[2] + ball_radius * 2, halph_s_bigger_size[3] + ball_radius * 2)
     rp1 = ellipsoid_segment_intersection(
         center_bottom_curvature,
         elipsoid_radiuses,
@@ -348,7 +299,7 @@ function find_ball_positions(
         bottom2,
         top2,
     )
-    # print("\n rrrrrrrrrrrrrr rp1 $(rp1) center_bottom_curvature $(center_bottom_curvature)\n")
+
     # 6) Shift rp1 by ball_radius along line from rp1 to center_bottom_curvature
     rp1_ball = point_on_line_by_distance(
         rp1,
@@ -365,13 +316,6 @@ function find_ball_positions(
 
     return (rp1_ball, rp2_ball)
 end
-
-
-
-
-
-
-
 
 
 """
@@ -529,13 +473,6 @@ function create_top_cut_objects(
         (bigger_cyl_size[1]-cylinder_wall_thickness) * cm, angle, x_cut_angle,
         y_cut_angle, 1.0
     )
-    # print("\n   aaaaaaaaaaa $((
-    #     center_cylinder[1]cm, center_cylinder[2]cm,
-    #     half_sphere_base_z * cm,
-    #     half_sphere_radius_xy * cm, half_sphere_radius_xy * cm,
-    #     menisc_radius * cm, angle, x_cut_angle,
-    #     y_cut_angle, 1.0
-    # ))          \n")
 
     # Return all three objects
     return ob_cut, ob_cut_orig, ob_menisc_cut
@@ -575,13 +512,13 @@ end
         r_xy_small_factor, r_z_small_factor
     ) -> (objects_list, volume_dict, ob4, ob5, ob4b, ob5b, ob_cut, ob_menisc_cut, ob_cyl_mask, ob5b_mask, density_map, name_type_list)
 
-Creates a cylindrical phantom with optional bottom/top half spheres, internal pipes, and dispensers. 
+Creates a cylindrical phantom with optional bottom/top half spheres, internal pipes, and dispensers.
 Returns:
 1. A list of primary objects (`ob`).
 2. A dictionary containing "can_inside" volume.
 3. Individual objects (ob4, ob5, ob4b, ob5b, ob_cut, ob_menisc_cut, ob5b_mask).
 4. A dictionary of densities for each object.
-5. A list of tuples (`name_type_list`), where each tuple is of the form 
+5. A list of tuples (`name_type_list`), where each tuple is of the form
    (object_name, object_itself, object_type).
 
 # Notes:
@@ -744,8 +681,8 @@ function empty_cylinder_with_half_sphere_bottom_p(
 
     if rounded_bottom
         # Calculate parameters for get_rounded_bottom
-        r_xy_small = bigger_cyl_size[1] * r_xy_small_factor #0.21  
-        r_z_small = bigger_cyl_size[3] * r_z_small_factor#0.02   
+        r_xy_small = bigger_cyl_size[1] * r_xy_small_factor #0.21
+        r_z_small = bigger_cyl_size[3] * r_z_small_factor#0.02
         r_xy_torus = bigger_cyl_size[1]        # Same as cylinder radius
         base_cylinder_radius = bigger_cyl_size[1]
         center_torus = [
@@ -755,15 +692,15 @@ function empty_cylinder_with_half_sphere_bottom_p(
         ]
 
         main_torus, inner_torus, outer_sphere, inner_sphere, ball1, ball2, main_torus_volume_analytical, inner_torus_volume_analytical, outer_sphere_volume, ball1_volume, ball2_volume = get_rounded_bottom(
-            spacing,                # spacing tuple 
+            spacing,                # spacing tuple
             dims,                  # dimensions tuple
             ig,                    # ImageGeom
             cylinder_wall_thickness,
             r_xy_small,           # small radius xy
-            r_z_small,            # small radius z  
+            r_z_small,            # small radius z
             r_xy_torus,           # torus radius
             center_torus,         # center position vector
-            base_cylinder_radius,  # base cylinder radius 
+            base_cylinder_radius,  # base cylinder radius
             curvature,            # curvature parameter
             tube_ball_fraction,   # tube ball fraction
             rel_dist             # relative distance
@@ -879,13 +816,6 @@ function empty_cylinder_with_half_sphere_bottom_p(
         push!(name_type_list, ("ball1", ball1, "half_sphere"))
         push!(name_type_list, ("ball2", ball2, "half_sphere"))
     end
-    # Collect primary objects
-    # ob = [ob2_a, ob2_b, ob3, pipe, pipe_in, plastic_dispenser, ob_cut,ball1,ball2]
-
-    # volume calculations
-    # vol1 = IP.volume(ob2_a) + IP.volume(ob2_b)
-    # vol2 = IP.volume(ob5)
-    # vol_pipe = IP.volume(pipe)
 
     pipe_center_z = pipe_start
     pipe_beg_z = pipe_start - (pipe_len / 2)
@@ -1006,12 +936,6 @@ function empty_cylinder_with_half_sphere_bottom_p(
         (len_pipe_in_fluid)cm, angle, 0, 0, pipe_density
     )
 
-
-
-
-    # print("\niiiiiiiiiiiiiiii inside_of_pipe_volume $(IP.volume(inside_of_pipe_in_fluid)) \n") #krowa
-
-
     # Add calc_cyl to density map and name_type_list
     density_map["calc_cyl"] = 1.0
     density_map["inside_of_pipe_in_fluid"] = 1.0
@@ -1047,8 +971,6 @@ function empty_cylinder_with_half_sphere_bottom_p(
     push!(name_type_list, ("center_bottom_out", center_bottom_out, "half_sphere"))
     push!(name_type_list, ("inside_of_pipe_in_fluid", inside_of_pipe_in_fluid, "cylinder"))
     push!(name_type_list, ("outside_of_pipe_in_fluid", outside_of_pipe_in_fluid, "cylinder"))
-    
-    
 
     return vol, density_map, name_type_list
 end
@@ -1080,7 +1002,7 @@ end
 """
     set_circle!(shape, cx, cy, z, radius)
 
-For a given 3D Boolean array `shape`, set to true all points (x, y, z) 
+For a given 3D Boolean array `shape`, set to true all points (x, y, z)
 within distance `radius` of center `(cx, cy)` on slice `z`.
 """
 function set_circle!(shape::Array{Bool,3},
@@ -1107,7 +1029,7 @@ end
 
 Given a current center `(cx, cy)`, return `(nx, ny)` which is
 moved by angle `theta_step` on a circle of radius `center_circle_radius`
-around the *origin* `(0,0)`. 
+around the *origin* `(0,0)`.
 """
 function move_center(cx::Float64, cy::Float64,
     center_circle_radius::Float64,
@@ -1207,8 +1129,3 @@ The starting voxel position for the cylinder along the specified axis
 function get_beg_voxel(spacing, center_cylinder, cyl_size, axis, dims)
     return ((center_cylinder[axis] - cyl_size[axis] / 2) / spacing[axis])
 end
-
-
-
-
-
