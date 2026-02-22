@@ -1,0 +1,11 @@
+SimpleITK
+wandb
+adrt
+h5py
+scikit-image
+pydicom<3.0.0
+nibabel
+matplotlib
+numpy
+pydicom-seg
+nii2dcm
