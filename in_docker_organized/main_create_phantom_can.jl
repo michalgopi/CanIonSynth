@@ -24,8 +24,8 @@ args_json_path = length(ARGS) >= 8 ? ARGS[8] : " "
 print("\n dims $dims add_radon $add_radon add_smooth $add_smooth additive_noise $additive_noise \n")
 
 using Pkg
-using Pkg;
-Pkg.add(url="https://github.com/jakubMitura14/ImagePhantoms.jl.git");
+# using Pkg;
+# Pkg.add(url="https://github.com/jakubMitura14/ImagePhantoms.jl.git");
 
 using Sinograms: SinoPar, rays, plan_fbp, fbp, fbp_sino_filter, CtFanArc, CtFanFlat, Window, Hamming, fdk, ct_geom_plot3, project_bdd, backproject_bdd
 using ImageGeoms: ImageGeom, fovs, MaskCircle, axesf
