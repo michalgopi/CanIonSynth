@@ -1,20 +1,28 @@
 #!/bin/bash
 # Generate a Steel Can (Flat bottom)
-# Args: dims add_radon variable_spacing uuid randomize add_smooth additive_noise [json_path]
 
 echo "Generating Steel Can Phantom..."
 cd in_docker_organized
 
 # Note: We simulate a steel can by configuring the JSON parameters.
-# Since we are calling the script directly without a JSON file argument,
-# the script typically randomizes parameters.
-# To guarantee a flat bottom (Steel), we would ideally use a JSON config.
-# For this example, we rely on the script's randomness or default behavior
-# (which might be mixed), but we demonstrate the command invocation.
+echo '{"rounded_bottom": false, "cylinder_wall_thickness": 0.02}' > temp_steel.json
 
-# To explicitly force parameters, one should use a config file like:
-# tests/configs/can_phantom.json (and ensure rounded_bottom is false)
+# Run Julia and capture output to find the directory
+# We use 'tee' to show output to user while capturing
+OUTPUT_LOG=$(julia --project=.. main_create_phantom_can.jl 64x64x64 false false "steel_example" false false 0.0 temp_steel.json)
+echo "$OUTPUT_LOG"
 
-julia --project=.. main_create_phantom_can.jl 64x64x64 false false "steel_example" false false 0.0
+# Extract output directory
+OUTPUT_DIR=$(echo "$OUTPUT_LOG" | grep "Output stored in:" | awk '{print $4}')
 
-echo "Done. Check in_docker_organized/ for output."
+rm temp_steel.json
+
+if [ -n "$OUTPUT_DIR" ]; then
+    echo ""
+    echo "generation complete."
+    echo "Output directory: $OUTPUT_DIR"
+    echo "To visualize:"
+    echo "  python3 ../scripts/visualize_nifti.py $OUTPUT_DIR/example_can.nii.gz"
+else
+    echo "Could not determine output directory."
+fi
