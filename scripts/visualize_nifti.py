@@ -36,38 +36,49 @@ def visualize_nifti(nifti_path, output_path=None):
         norm_data = data
 
     # Find center slices
-    x, y, z = data.shape
-    slice_x = data[x // 2, :, :]
-    slice_y = data[:, y // 2, :]
-    slice_z = data[:, :, z // 2]
+    if len(data.shape) == 3:
+        x, y, z = data.shape
+        slice_x = data[x // 2, :, :]
+        slice_y = data[:, y // 2, :]
+        slice_z = data[:, :, z // 2]
+        
+        # Create plot
+        fig = plt.figure(figsize=(15, 10))
 
-    # Create plot
-    fig = plt.figure(figsize=(15, 10))
+        # 1. Sagittal View (fixed x)
+        ax1 = fig.add_subplot(2, 2, 1)
+        im1 = ax1.imshow(np.rot90(slice_x), cmap='gray', aspect='auto')
+        ax1.set_title(f'Sagittal View (X={x//2})')
+        plt.colorbar(im1, ax=ax1)
+        ax1.axis('off')
 
-    # 1. Sagittal View (fixed x)
-    ax1 = fig.add_subplot(2, 2, 1)
-    # Transpose might be needed depending on orientation, typically Z is up in these plots
-    im1 = ax1.imshow(np.rot90(slice_x), cmap='gray', aspect='auto')
-    ax1.set_title(f'Sagittal View (X={x//2})')
-    plt.colorbar(im1, ax=ax1)
-    ax1.axis('off')
+        # 2. Coronal View (fixed y)
+        ax2 = fig.add_subplot(2, 2, 2)
+        im2 = ax2.imshow(np.rot90(slice_y), cmap='gray', aspect='auto')
+        ax2.set_title(f'Coronal View (Y={y//2})')
+        plt.colorbar(im2, ax=ax2)
+        ax2.axis('off')
 
-    # 2. Coronal View (fixed y)
-    ax2 = fig.add_subplot(2, 2, 2)
-    im2 = ax2.imshow(np.rot90(slice_y), cmap='gray', aspect='auto')
-    ax2.set_title(f'Coronal View (Y={y//2})')
-    plt.colorbar(im2, ax=ax2)
-    ax2.axis('off')
+        # 3. Axial View (fixed z)
+        ax3 = fig.add_subplot(2, 2, 3)
+        im3 = ax3.imshow(np.rot90(slice_z), cmap='gray', aspect='auto')
+        ax3.set_title(f'Axial View (Z={z//2})')
+        plt.colorbar(im3, ax=ax3)
+        ax3.axis('off')
+    else:
+        # 2D data
+        rows, cols = data.shape
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(2, 1, 1)
+        im = ax.imshow(data, cmap='gray', aspect='auto')
+        ax.set_title(f'2D View ({rows}x{cols})')
+        plt.colorbar(im, ax=ax)
+        ax4 = fig.add_subplot(2, 1, 2) # Use ax4 for histogram compatibility below
 
-    # 3. Axial View (fixed z)
-    ax3 = fig.add_subplot(2, 2, 3)
-    im3 = ax3.imshow(np.rot90(slice_z), cmap='gray', aspect='auto')
-    ax3.set_title(f'Axial View (Z={z//2})')
-    plt.colorbar(im3, ax=ax3)
-    ax3.axis('off')
-
-    # 4. Histogram
-    ax4 = fig.add_subplot(2, 2, 4)
+    # Histogram (ax4 is defined in both branches above or used below)
+    if 'ax4' not in locals():
+        ax4 = fig.add_subplot(2, 2, 4)
+    
     ax4.hist(data.flatten(), bins=50, color='c', alpha=0.7)
     ax4.set_title('Intensity Histogram')
     ax4.set_xlabel('Intensity')
