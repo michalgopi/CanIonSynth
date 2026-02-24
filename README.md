@@ -4,7 +4,8 @@ This repository creates synthetic phantoms and data for tomographic reconstructi
 
 ## Documentation
 
-*   [Manual Verification Guide](docs/manual_verification.md) - Step-by-step guide for manual verification.
+*   [Manual Testing and Visualization](docs/manual_testing_visualization.md) - **Guide to running comprehensive manual tests and visualizing results.**
+*   [Manual Verification Guide](docs/manual_verification.md) - Detailed checklist for verification.
 *   [System Architecture](docs/system_architecture.md) - Overview of the system components.
 *   [Phantom Types](docs/phantom_types.md) - Details on Can and Ionic Chamber phantoms.
 *   [Volume Calculation](docs/volume_calculation.md) - Explanation of analytical and numerical methods.
@@ -67,6 +68,7 @@ See `examples/` directory for ready-to-run shell scripts.
 *   `packages/`: Vendored dependencies (e.g., patched `ImagePhantoms.jl`).
 *   `docs/`: Documentation.
 *   `examples/`: Usage examples.
+*   `scripts/`: Helper scripts (visualization, etc.).
 *   `Project.toml` / `Manifest.toml`: Julia dependencies lock files.
 *   `requirements.txt`: Python dependencies.
 
