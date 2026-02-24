@@ -2,6 +2,14 @@
 
 This repository creates synthetic phantoms and data for tomographic reconstruction. It generates NIfTI files and optionally DICOM and DICOM-SEG files.
 
+## Documentation
+
+*   [Manual Testing and Visualization](docs/manual_testing_visualization.md) - **Guide to running comprehensive manual tests and visualizing results.**
+*   [Manual Verification Guide](docs/manual_verification.md) - Detailed checklist for verification.
+*   [System Architecture](docs/system_architecture.md) - Overview of the system components.
+*   [Phantom Types](docs/phantom_types.md) - Details on Can and Ionic Chamber phantoms.
+*   [Volume Calculation](docs/volume_calculation.md) - Explanation of analytical and numerical methods.
+
 ## Setup
 
 ### Prerequisites
@@ -51,11 +59,16 @@ Arguments:
 6.  Add smoothing (`true`/`false`)
 7.  Additive noise level (float)
 
+See `examples/` directory for ready-to-run shell scripts.
+
 ## Repository Structure
 
 *   `in_docker_organized/`: Main generation scripts (`main_create_phantom_can.jl`, etc.).
 *   `tests/`: Test suite and configurations.
 *   `packages/`: Vendored dependencies (e.g., patched `ImagePhantoms.jl`).
+*   `docs/`: Documentation.
+*   `examples/`: Usage examples.
+*   `scripts/`: Helper scripts (visualization, etc.).
 *   `Project.toml` / `Manifest.toml`: Julia dependencies lock files.
 *   `requirements.txt`: Python dependencies.
 

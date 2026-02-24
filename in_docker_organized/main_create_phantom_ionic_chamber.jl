@@ -25,8 +25,8 @@ __precompile__(false)
     args_json_path = length(ARGS) >= 8 ? ARGS[8] : " "
 
 # __precompile__(false)  # Add this at the very top
-using Pkg;
-Pkg.add(url="https://github.com/jakubMitura14/ImagePhantoms.jl.git");
+# using Pkg;
+# Pkg.add(url="https://github.com/jakubMitura14/ImagePhantoms.jl.git");
 
 using Pkg
 using Sinograms: SinoPar, rays, plan_fbp, fbp, fbp_sino_filter, CtFanArc, CtFanFlat, Window, Hamming, fdk, ct_geom_plot3, project_bdd, backproject_bdd
@@ -964,10 +964,26 @@ function json_params(args_json_path, uuid=nothing, dims=(128, 128, 128))
     lolipop_like = get(params, "lolipop_like", false)
     rounded_top = get(params, "rounded_top", false)
 
+    new_flat_sizes = get(params, "new_flat_sizes", false)
+    rand_ver = get(params, "rand_ver", 1)
+
+    # Logic to ensure valid shape if new_flat_sizes is true
+    if new_flat_sizes
+        ball_like = false
+        lolipop_like = false
+        if !square_top && !rounded_top
+            # If neither is specified in JSON, default to rounded_top for new_flat_sizes
+            # similar to generate_random_params but deterministic
+            rounded_top = true
+        end
+    elseif !square_top && !ball_like && !lolipop_like && !rounded_top
+        # Default fallback
+        rounded_top = true
+    end
+
     add_graphite_in_copper = get(params, "add_graphite_in_copper", false)
     add_spiral = get(params, "add_spiral", false)
     elongate_copper = get(params, "elongate_copper", false)
-    new_flat_sizes = get(params, "new_flat_sizes", false)
 
     total_len = get(params, "total_len", 2.65)
     base_len = get(params, "base_len", 0.8)
@@ -1028,7 +1044,7 @@ function json_params(args_json_path, uuid=nothing, dims=(128, 128, 128))
         "spacing" => spacing,
         "dims" => dims,
         "new_flat_sizes"=>new_flat_sizes,
-        "rand_ver"=>get(params, "rand_ver", 1)
+        "rand_ver"=>rand_ver
     )
 
     # Print parameters for debugging
