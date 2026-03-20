@@ -95,9 +95,9 @@ Pkg.add([
 ```
 
 #### 4. Verification
-Run the small test suite to ensure everything is configured correctly:
+Run the test suite to ensure everything is configured correctly:
 ```bash
-julia tests/run_tests_small.jl
+julia tests/run_tests.jl
 ```
 
 ---
@@ -232,6 +232,7 @@ The simulation generates a folder named with the `uuid` containing:
 
 ## Troubleshooting
 
+*   **`ImagePhantoms` Error (`Method overwriting is not permitted during Module precompilation` and `duplicate calls to "include"`):** This error natively occurs on Windows due to duplicate `include("cuboid.jl")` calls introduced in the custom fork's `half_sphere.jl` and `half_sphere_b.jl`. To fix this natively without WSL, run `julia tests/setup_env.jl`, then open `C:\Users\<username>\.julia\packages\ImagePhantoms\SEASv\src\half_sphere.jl` and `half_sphere_b.jl`, delete the `include("cuboid.jl")` lines, and restart Julia. Alternatively, update the fork URL to a branch where these duplicate includes are removed.
 *   **`nii2dcm` not found:** The scripts check for this tool. If missing, a warning is printed, and DICOM conversion is skipped. The NIfTI files are still generated.
 *   **WandB errors:** Ensure you are logged in (`wandb login`) or use `SKIP_WANDB=true`.
 *   **Package loading errors:** Run `julia tests/setup_env.jl` to ensure the registry and `ImagePhantoms` are correctly configured.
