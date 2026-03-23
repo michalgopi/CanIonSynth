@@ -50,12 +50,12 @@ using ImageFiltering
 using Random
 
 
-# Import external packages with pyimport_conda
-sitk = pyimport_conda("SimpleITK", "simpleitk")
-np = pyimport_conda("numpy", "numpy")
+# Import external packages with pyimport
+sitk = pyimport("SimpleITK")
+np = pyimport("numpy")
 
 if !haskey(ENV, "SKIP_WANDB")
-    wandb = pyimport_conda("wandb", "wandb")
+    wandb = pyimport("wandb")
     wandb.init(project="synth")
 else
     struct MockWandB
