@@ -142,7 +142,7 @@ function save_sitk_image_as_dicom(img, output_folder::String)
     # 1) Create a unique temporary file
     timestamp = Dates.format(now(), "yyyyMMdd_HHMMSS")
     rnd_str = string(rand(1000:9999))
-    tmp_nifti_path = "/tmp/temp_dicom_" * timestamp * "_" * rnd_str * ".nii"
+    tmp_nifti_path = joinpath(tempdir(), "temp_dicom_" * timestamp * "_" * rnd_str * ".nii")
 
     # 2) Write the image as a NIfTI file
     sitk.WriteImage(new_img, tmp_nifti_path)
@@ -318,9 +318,9 @@ function convert_nifti_to_dicom_seg(nifti_path::String, reference_dicom_path::St
 
     # Run the Python script with additional reference_nifti argument if provided
     cmd = if isempty(reference_nifti_path)
-        `python3 $(script_path) $(nifti_path) $(reference_dicom_path) $(output_folder)`
+        `$(PyCall.python) $(script_path) $(nifti_path) $(reference_dicom_path) $(output_folder)`
     else
-        `python3 $(script_path) $(nifti_path) $(reference_dicom_path) $(output_folder) --reference_nifti $(reference_nifti_path)`
+        `$(PyCall.python) $(script_path) $(nifti_path) $(reference_dicom_path) $(output_folder) --reference_nifti $(reference_nifti_path)`
     end
 
     println("Running command: $(cmd)")

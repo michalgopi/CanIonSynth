@@ -22,7 +22,7 @@ import ImagePhantoms as IP
 
 includet("get_geometry_main.jl")
 includet("geometry_utils.jl")
-sitk = pyimport_conda("SimpleITK", "simpleitk")
+sitk = pyimport("SimpleITK")
 
 
 

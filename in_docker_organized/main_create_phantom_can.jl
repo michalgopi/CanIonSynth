@@ -47,12 +47,12 @@ using Accessors
 using ImageFiltering
 using Random
 
-# Import external packages with pyimport_conda
-sitk = pyimport_conda("SimpleITK", "simpleitk")
-np = pyimport_conda("numpy", "numpy")
+# Import external packages with pyimport
+sitk = pyimport("SimpleITK")
+np = pyimport("numpy")
 
 if !haskey(ENV, "SKIP_WANDB")
-    wandb = pyimport_conda("wandb", "wandb")
+    wandb = pyimport("wandb")
     wandb.init(project="synth")
 else
     struct MockWandB
@@ -63,8 +63,8 @@ else
 end
 
 try
-    skimage = pyimport_conda("skimage", "skimage")
-    adrt = pyimport_conda("adrt", "adrt")
+    skimage = pyimport("skimage")
+    adrt = pyimport("adrt")
 catch e
     println("Warning: Could not import skimage or adrt. Proceeding without them.")
 end
