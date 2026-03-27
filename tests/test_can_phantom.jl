@@ -46,7 +46,7 @@ include.([
 ])
 
 include("../in_docker_organized/get_rounded_bottom_b.jl")
-const global ImagePhantoms.IRREGULARITY = 0.3
+ImagePhantoms.IRREGULARITY = 0.3
 
 # Import volume calculation function
 include("../in_docker_organized/volume_integration.jl")

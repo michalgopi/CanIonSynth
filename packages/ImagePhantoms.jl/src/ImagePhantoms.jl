@@ -1,6 +1,7 @@
 module ImagePhantoms
 
 const RealU = Number # Union{Real, Unitful.Length}
+global IRREGULARITY = 0.0
 
 # core:
 include("shape.jl")

@@ -75,7 +75,7 @@ includet.([
     "geometry_utils.jl"])
 
 includet("get_rounded_bottom_b.jl")
-const global ImagePhantoms.IRREGULARITY = 0.3
+ImagePhantoms.IRREGULARITY = 0.3
 
 # Import volume calculation function
 includet("volume_integration.jl")
