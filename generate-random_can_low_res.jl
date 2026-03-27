@@ -73,7 +73,7 @@ includet("/root/.devcontainer/get_geometry_main.jl")
 includet("/root/.devcontainer/CtFanArc_params.jl") 
 
 #controls how irregular the cylinders are
-const global ImagePhantoms.IRREGULARITY = 0.3
+ImagePhantoms.IRREGULARITY = 0.3
 
 #get size of the generated image
 spacing = (0.1, 0.1, 0.1)

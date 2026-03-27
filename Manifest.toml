@@ -661,9 +661,7 @@ weakdeps = ["MIRTjim"]
 
 [[deps.ImagePhantoms]]
 deps = ["HDF5", "KernelAbstractions", "LazyGrids", "Random", "SpecialFunctions", "Unitful"]
-git-tree-sha1 = "8bdc7e6bffe0dbf6fdc20197707ccdf4e9b45cb8"
-repo-rev = "main"
-repo-url = "https://github.com/jakubMitura14/ImagePhantoms.jl.git"
+path = "packages/ImagePhantoms.jl"
 uuid = "71a99df6-f52c-4da1-bd2a-69d6f37f3252"
 version = "0.8.1"
 
