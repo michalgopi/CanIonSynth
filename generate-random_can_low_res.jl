@@ -368,7 +368,8 @@ function get_random_can_uploaded()
             # sitk.WriteImage(sitk.GetImageFromArray(UInt8.(cyl_inner_bool)), "/workspaces/synthethic_tomo/data/cylinder_inner.nii.gz")
             # Compress the folder to a zip archive
             zip_path = "$(main_foloder).zip"
-            run(`zip -r $zip_path $main_foloder`)
+            shutil = pyimport("shutil")
+            shutil.make_archive(main_foloder, "zip", main_foloder)
             command = `gcloud storage cp $zip_path gs://bucket_metro_tk/`
             # Execute the command
             run(command)
@@ -744,7 +745,8 @@ function get_random_ionic_ch_uploaded()
             # sitk.WriteImage(sitk.GetImageFromArray(UInt8.(cyl_inner_bool)), "/workspaces/synthethic_tomo/data/cylinder_inner.nii.gz")
             # Compress the folder to a zip archive
             zip_path = "$(main_foloder).zip"
-            run(`zip -r $zip_path $main_foloder`)
+            shutil = pyimport("shutil")
+            shutil.make_archive(main_foloder, "zip", main_foloder)
             command = `gcloud storage cp $zip_path gs://bucket_metro_ionic_ch/high_res`
             # Execute the command
             run(command)

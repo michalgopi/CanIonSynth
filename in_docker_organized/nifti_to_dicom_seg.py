@@ -302,6 +302,12 @@ def convert_nifti_to_dicom_seg(nifti_mask, dicom_filenames, dicom_reference, out
         # Convert to uint8 binary mask if needed
         binary_mask = sitk.Cast(aligned_mask, sitk.sitkUInt8)
 
+        # Skip dicom-seg creation if mask is entirely empty to prevent ValueError
+        mask_array = sitk.GetArrayFromImage(binary_mask)
+        if not np.any(mask_array):
+            logger.warning("Segmentation does not contain any labels. Skipping DICOM-SEG creation.")
+            return True
+
         dcm = writer.write(binary_mask, source_images)
 
         # Add custom series description

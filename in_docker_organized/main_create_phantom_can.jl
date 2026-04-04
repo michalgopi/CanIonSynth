@@ -1198,7 +1198,8 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
     save_args(args, vol, main_folder)
 
     zip_path = "$(get_temp_folder())/$(uuid).zip"
-    run(`zip -r $zip_path $main_folder`)
+    shutil = pyimport("shutil")
+    shutil.make_archive("$(get_temp_folder())/$(uuid)", "zip", main_folder)
     # Ensure the Google Cloud Storage folder exists
     file_name = "can_is_2D_$(is_2d)_is_radon_$(add_radon)_$(dims[1])|$(dims[2])|$(dims[3])_$uuid"
 

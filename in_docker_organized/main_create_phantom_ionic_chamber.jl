@@ -1551,7 +1551,8 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
     file_name = "ionic_ch_$(add_str)_$(dims[1])|$(dims[2])|$(dims[3])_add_radon_$(add_radon)_$uuid"
 
     zip_path = "$(temp_fold)/$(file_name).zip"
-    run(`zip -r $zip_path $main_folder`)
+    shutil = pyimport("shutil")
+    shutil.make_archive("$(temp_fold)/$(file_name)", "zip", main_folder)
 
     if !haskey(ENV, "SKIP_UPLOAD")
         command = `gcloud storage cp $zip_path gs://metro_tk_kplayground/ionic-chambersx128/$file_name`
