@@ -1,209 +1,126 @@
 # Function Reference
 
-This document provides detailed documentation for the functions in the repository, organized by source file.
+This document is a code map for the project files that matter most when you need to extend, debug, or review the repository.
 
-## 1. `in_docker_organized/main_create_phantom_can.jl`
+## Main Generation Entry Points
 
-This script is the entry point for generating "can" phantoms. It defines functions to create, configure, and save the phantom data.
+### `in_docker_organized/main_create_phantom_can.jl`
 
-### `json_based_can(ig, json_path, is_2d=true, is_debug=false)`
-Generates a "can" phantom based on parameters loaded from a JSON file.
-*   **Arguments:**
-    *   `ig`: `ImageGeom` object defining the image geometry (dimensions, spacing).
-    *   `json_path`: Path to the JSON configuration file.
-    *   `is_2d`: Boolean, if true, forces certain angles to 0 (for 2D slice generation).
-    *   `is_debug`: Boolean, enables debug print statements.
-*   **Returns:** A tuple containing:
-    *   `vol`: Dictionary with volume information (e.g., fluid volume).
-    *   `args`: List of tuples representing the phantom parameters.
-    *   `density_map`: Dictionary mapping object names to their densities.
-    *   `name_type_list`: List of object names and types.
-    *   Boolean flags for geometry features (double bottom, rounded bottom, etc.).
+Role: top-level can phantom workflow.
 
-### `random_can(ig, image_size_cm, is_2d, seed, spacing, is_debug=false)`
-Generates a "can" phantom with randomized parameters within defined constraints.
-*   **Arguments:**
-    *   `ig`: `ImageGeom` object.
-    *   `image_size_cm`: Tuple of image dimensions in cm.
-    *   `is_2d`: Boolean for 2D mode.
-    *   `seed`: Integer seed for random number generation.
-    *   `spacing`: Voxel spacing (dx, dy, dz).
-    *   `is_debug`: Boolean for debug output.
-*   **Returns:** Same structure as `json_based_can`.
+Important functions:
 
-### `get_cylinder_bool_mask(ob_el)`
-Converts a cylinder object (or list of objects) into a boolean mask.
-*   **Arguments:** `ob_el`: Phantom object(s).
-*   **Returns:** 3D BitArray (mask).
+- `json_based_can(ig, json_path, is_2d=true, is_debug=false)`: builds a can phantom from a JSON configuration.
+- `random_can(ig, image_size_cm, is_2d, seed, spacing, is_debug=false)`: builds a randomized can parameter set.
+- `create_boolean_density_dict(name_type_list, density_map)`: converts geometry objects into masks and density volumes.
+- `get_random_can_uploaded(is_2d, seed, uuid=nothing)`: full generation, export, zip, and optional upload workflow.
+- `calculate_and_save_fluid_volume(seed, is_2d=false, uuid=nothing)`: wrapper around the main can workflow.
 
-### `get_half_s_bool(ob_el)`
-Converts a half-sphere object into a boolean mask.
-*   **Arguments:** `ob_el`: Phantom object(s).
-*   **Returns:** 3D BitArray (mask).
+### `in_docker_organized/main_create_phantom_ionic_chamber.jl`
 
-### `get_temp_folder()`
-Creates a temporary directory for storing intermediate files.
-*   **Returns:** Path to the temporary directory.
+Role: top-level ionic chamber workflow.
 
-### `save_args(args, vol, main_folder)`
-Saves the generation arguments and volume data to a `argss.json` file in the specified folder.
-*   **Arguments:**
-    *   `args`: List of parameter tuples.
-    *   `vol`: Volume data.
-    *   `main_folder`: Output directory path.
+Important functions:
 
-### `create_boolean_density_dict(name_type_list, density_map)`
-Constructs a dictionary of phantom objects with their boolean masks and density-scaled float masks.
-*   **Arguments:**
-    *   `name_type_list`: List of (name, object, type) tuples.
-    *   `density_map`: Dictionary of densities.
-*   **Returns:** Dictionary where keys are object names and values are tuples `(bool_mask, float_mask, original_object)`.
+- `json_params(args_json_path, uuid=nothing, dims=(128, 128, 128))`: loads or completes a chamber parameter dictionary from JSON.
+- `generate_random_params(uuid, dims, randomize=true, variable_spacing=false)`: builds a random parameter set.
+- `create_ionic_chamber_phantom(params)`: assembles the chamber geometry and voxelized output.
+- `build_image(base_params, specs, angle, spacing, dims)`: converts cylinder specifications into a final chamber volume.
+- `get_random_chamber(dims, uuid, temp_fold, variable_spacing, randomize)`: full generation, export, zip, and optional upload workflow.
 
-### `add_noise_at(phantoms_dict, key, density_map)`
-Adds Gaussian noise to a specific object's region in the phantom.
-*   **Arguments:**
-    *   `phantoms_dict`: Dictionary of phantom objects.
-    *   `key`: Key of the object to add noise to.
-    *   `density_map`: Density map.
-*   **Returns:** Float array with noise added to the object's region.
+## Geometry Construction Files
 
-### `get_random_can_uploaded(is_2d, seed, uuid=nothing)`
-Main workflow function to generate, save, and upload a random can phantom.
-*   **Arguments:**
-    *   `is_2d`: Boolean flag.
-    *   `seed`: Random seed.
-    *   `uuid`: Unique identifier (optional).
-*   **Returns:** Tuple `(numerical_vol, analytical_vol, fluid_volume_numerical_my)` representing different volume calculations.
+### `in_docker_organized/get_geometry_main.jl`
 
-### `calculate_and_save_fluid_volume(seed, is_2d=false, uuid=nothing)`
-Wrapper function that calls `get_random_can_uploaded`.
+Role: can geometry definition and placement helpers.
 
-## 2. `in_docker_organized/main_create_phantom_ionic_chamber.jl`
+Important functions:
 
-This script generates "ionic chamber" phantoms.
+- `empty_cylinder_with_half_sphere_bottom_p(...)`: builds the main can geometry, fluid regions, and internal objects.
+- `create_top_cut_objects(...)`: creates the cut geometry used for fluid surfaces and related features.
+- `find_ball_positions(...)`: computes sphere placement inside the can.
+- `volume_of_elliptical_cylinder(pipe_cross_section, overlay_length)`: helper for analytical volume calculations.
 
-### `cylinder_interval(c_z, l_z)`
-Helper to calculate the z-range of a cylinder.
-*   **Returns:** `(z_start, z_end)`.
+### `in_docker_organized/get_rounded_bottom_b.jl`
 
-### `overlaps(c1, l1, c2, l2)`
-Checks if two z-intervals overlap.
-*   **Returns:** Boolean.
+Role: rounded-bottom geometry support.
 
-### `compute_adjusted_density(new_desired, new_z, new_lz, existing)`
-Calculates the effective density for a new cylinder to account for overlaps with existing cylinders (density superposition).
-*   **Returns:** Adjusted density value.
+Important functions:
 
-### `create_cylinder(base_x, base_y, base_bottom_z, spec, angle, name)`
-Creates a cylinder parameter NamedTuple from a specification dictionary.
-*   **Returns:** NamedTuple with cylinder parameters.
+- `create_sphere(...)`: helper for curved bottom elements.
+- `create_torus(...)`: helper for toroidal rounded-bottom geometry.
+- `calculate_torus_volumes(...)`: analytical support for rounded-bottom volume estimates.
+- `get_rounded_bottom(...)`: builds the lower can geometry for rounded-bottom variants.
 
-### `adjust_densities!(cylinders)`
-Iteratively adjusts the densities of a list of cylinders to ensure the final superposition matches the desired densities.
-*   **Returns:** Vector of adjusted cylinder NamedTuples.
+## Utility And Interop Files
 
-### `build_image(base_params, specs, angle, spacing, dims)`
-Constructs the full phantom image from base parameters and component specifications.
-*   **Returns:** Tuple containing `(cylinders_prim, named_res, cylinder_densities, vol_res)`.
+### `in_docker_organized/geometry_utils.jl`
 
-### `create_ionic_chamber_phantom(params)`
-Main function to generate the ionic chamber phantom. It determines the specific geometry (square top, ball-like, etc.) and assembles the components.
-*   **Arguments:** `params`: Dictionary of parameters.
-*   **Returns:** Tuple containing the final image array, raw image, masks, and volume data.
+Role: shared image manipulation and export helpers.
 
-### `save_ionic_chamber_params(params, filename)`
-Saves the parameter dictionary to a JSON file.
+Important functions:
 
-### `json_params(args_json_path, uuid=nothing, dims=(128, 128, 128))`
-Loads parameters from a JSON file, filling in defaults where necessary.
+- `rotation3d(image, axis, theta)`: rotates SimpleITK images.
+- `save_sitk_image_as_dicom(img, output_folder)`: attempts DICOM slice export through `nii2dcm`.
+- `save_nifti_with_meta(arr, cast_to_uint8, spacing, output_path)`: writes NIfTI outputs with spatial metadata.
+- `save_mask_as_nifti(mask, output_path, spacing)`: writes boolean masks as NIfTI.
+- `convert_nifti_to_dicom_seg(nifti_path, reference_dicom_path, output_folder, reference_nifti_path="")`: wraps the Python DICOM-SEG helper.
+- `move_image(...)`: translates masks in voxel space while respecting physical spacing.
 
-### `generate_random_params(uuid, dims, randomize=true, variable_spacing=false)`
-Generates a random parameter set for an ionic chamber, selecting a random type (square top, ball-like, etc.) and randomizing dimensions.
-*   **Returns:** Parameter dictionary.
+### `in_docker_organized/volume_integration.jl`
 
-### `get_random_chamber(dims, uuid, temp_fold, variable_spacing, randomize)`
-Main workflow function to generate, save, and upload an ionic chamber phantom.
+Role: analytical and numerical volume comparison for the can workflow.
 
-## 3. `in_docker_organized/get_geometry_main.jl`
+Important functions:
 
-Contains the geometry definitions for the "can" phantom.
+- `compute_fluid_volume_in_can(...)`: baseline analytical and numerical volume comparison.
+- `compute_fluid_volume_in_can_v2(...)` and `compute_fluid_volume_in_can_v3(...)`: intermediate calculation variants.
+- `compute_accurate_fluid_volume(...)`: higher-fidelity analytical comparison logic.
+- `compute_accurate_fluid_volume_fixed(...)`: current detailed implementation used by the main workflow.
 
-### `ionic_chamber_p(...)`
-Defines the geometry of a parameterized ionic chamber using basic shapes. (Note: This seems to be an alternative or older implementation compared to the main script).
+## Python Helpers
 
-### `empty_cylinder_with_half_sphere_bottom_p(...)`
-Constructs the components of a "can" phantom. This is a complex function that defines:
-*   The main cylinder body.
-*   The bottom (flat or rounded with half-spheres).
-*   The fluid (single or dual phase) with meniscus.
-*   The cut plane (tilt) at the top of the fluid.
-*   Internal objects (pipe, dispenser).
-*   Defects or "cuts".
-*   **Returns:** A tuple containing the list of objects, volume dictionary, and individual component masks.
+### `in_docker_organized/get_approximate_radon_inverse.py`
 
-### `volume_of_elliptical_cylinder(pipe_cross_section, overlay_length)`
-Calculates the volume of an elliptical cylinder.
+Role: approximate projection and reconstruction helper used when `add_radon=true`.
 
-## 4. `in_docker_organized/geometry_utils.jl`
+Important functions:
 
-Utility functions for image manipulation and saving.
+- `iadrt_cg(...)`: iterative inverse helper
+- `next_power_of_two(n)`: array sizing helper
+- `pad_to_power_of_two(arr)`: preprocessing helper
 
-### `matrix_from_axis_angle(a)`
-Computes a rotation matrix from an axis-angle representation.
+### `in_docker_organized/nifti_to_dicom_seg.py`
 
-### `resample(image, transform)`
-Resamples a SimpleITK image using a given transform.
+Role: converts a NIfTI segmentation mask into a DICOM-SEG output using a reference DICOM series.
 
-### `rotation3d(image, axis, theta)`
-Rotates a 3D image around a specific axis by `theta` degrees.
+Important functions:
 
-### `save_sitk_image_as_dicom(img, output_folder)`
-Saves a SimpleITK image as a series of DICOM files. Uses `nii2dcm` utility.
+- `parse_args()`
+- `validate_inputs(...)`
+- `read_nifti_mask(...)`
+- `load_reference_dicoms(...)`
+- `ensure_spacing_consistency(...)`
+- `convert_nifti_to_dicom_seg(...)`
 
-### `get_per_slice_reconstruction(arr)`
-Performs a slice-by-slice reconstruction (inverse Radon transform) using `skimage.transform.iradon`.
+### `scripts/visualize_nifti.py`
 
-### `save_2d_sitk_image_as_dicom(immm, output_path)`
-Saves a 2D SimpleITK image as a DICOM file, handling intensity scaling.
+Role: saves a PNG with orthogonal slices and an intensity histogram for a NIfTI file.
 
-### `save_nifti_with_meta(arr, cast_to_uint8, spacing, output_path)`
-Saves an array as a NIfTI file with specified metadata (spacing, direction, origin).
+Important function:
 
-### `save_mask_as_nifti(mask, output_path, spacing)`
-Wrapper to save a boolean mask as a NIfTI file.
+- `visualize_nifti(nifti_path, output_path=None)`
 
-### `convert_nifti_to_dicom_seg(nifti_path, reference_dicom_path, output_folder, reference_nifti_path="")`
-Converts a NIfTI mask to DICOM-SEG format by calling a Python script (`nifti_to_dicom_seg.py`).
+## Testing And Documentation Entry Points
 
-### `move_image(array, axis, distance, direction, spacing)`
-Shifts a binary image along a specified axis by a given distance (in cm).
+### `tests/setup_env.jl`
 
-## 5. `in_docker_organized/volume_integration.jl`
+Role: instantiates the Julia project and binds `PyCall` to the active virtual environment.
 
-Functions for analytical volume calculation of the fluid in the can phantom.
+### `tests/run_tests.jl`
 
-### `compute_fluid_volume_in_can(phantoms_dict, spacing, first_ball, second_ball, rounded_bottom, params)`
-Calculates the fluid volume using both numerical (sum of voxels) and analytical (geometric formulas) methods.
-It accounts for:
-*   Base cylinder volume.
-*   Top cut plane (tilt).
-*   Bottom geometry (rounded or flat).
-*   Subtracted objects (balls, pipe overlap).
-*   **Returns:** Tuple `(numerical_vol, analytical_vol)`.
+Role: end-to-end integration test harness for both main generators. The harness also checks that expected output files are produced and optionally preserves them with `SAVE_OUTPUTS_TO`.
 
-### `compute_accurate_fluid_volume(phantoms_dict, spacing, first_ball, second_ball, rounded_bottom, params, ig)`
-A more precise version of volume calculation, handling complex interactions between components.
+### `docs/make.jl`
 
-### `compute_accurate_fluid_volume_fixed(...)`
-Fixed version of the accurate volume calculation logic.
-
-## 6. `CtFanArc_params.jl`
-
-Defines CT geometry and projection functions.
-
-### `get_CTFAN_proj(ob, is_high_res=false)`
-Configures a Fan Beam CT geometry and generates projections (sinogram) for a given object.
-*   **Arguments:**
-    *   `ob`: Phantom object(s) to project.
-    *   `is_high_res`: Boolean, selects between standard and high-resolution geometry settings.
-*   **Returns:** Tuple `(proj_arc, rg)`, where `proj_arc` is the projection data and `rg` is the geometry object.
+Role: builds the documentation site from the Markdown files in `docs/`.
