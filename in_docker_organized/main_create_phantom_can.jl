@@ -1038,10 +1038,16 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
             println("Warning: example_can.nii.gz not found, cannot create reference DICOM")
         end
     end
+    has_reference_dicom = isdir(reference_dicom_path) && !isempty(readdir(reference_dicom_path))
+    if !has_reference_dicom
+        println("Warning: reference DICOM series unavailable. Skipping DICOM-SEG conversion.")
+    end
 
     # Convert fluid mask to DICOM-SEG
     seg_output_folder = joinpath(main_folder, "fluid_mask")
-    convert_nifti_to_dicom_seg(fluid_mask_path, reference_dicom_path, seg_output_folder, reference_nifti_path)
+    if has_reference_dicom
+        convert_nifti_to_dicom_seg(fluid_mask_path, reference_dicom_path, seg_output_folder, reference_nifti_path)
+    end
 
     # Save additional masks as NIfTI files
     # 1. Ball masks
@@ -1051,7 +1057,9 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
             joinpath(main_folder, "ball1_mask.nii.gz"),
             spacing
         )
-        convert_nifti_to_dicom_seg(joinpath(main_folder, "ball1_mask.nii.gz"), reference_dicom_path, joinpath(main_folder, "ball1_mask"))
+        if has_reference_dicom
+            convert_nifti_to_dicom_seg(joinpath(main_folder, "ball1_mask.nii.gz"), reference_dicom_path, joinpath(main_folder, "ball1_mask"))
+        end
 
     end
 
@@ -1061,7 +1069,9 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
             joinpath(main_folder, "ball2_mask.nii.gz"),
             spacing
         )
-        convert_nifti_to_dicom_seg(joinpath(main_folder, "ball2_mask.nii.gz"), reference_dicom_path, joinpath(main_folder, "ball2_mask"))
+        if has_reference_dicom
+            convert_nifti_to_dicom_seg(joinpath(main_folder, "ball2_mask.nii.gz"), reference_dicom_path, joinpath(main_folder, "ball2_mask"))
+        end
 
     end
     save_mask_as_nifti(
@@ -1080,7 +1090,9 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
                 joinpath(main_folder, "pipe_mask.nii.gz"),
                 spacing
             )
-            convert_nifti_to_dicom_seg(joinpath(main_folder, "pipe_mask.nii.gz"), reference_dicom_path, joinpath(main_folder, "pipe_mask"))
+            if has_reference_dicom
+                convert_nifti_to_dicom_seg(joinpath(main_folder, "pipe_mask.nii.gz"), reference_dicom_path, joinpath(main_folder, "pipe_mask"))
+            end
 
         end
     end
@@ -1094,7 +1106,9 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
             joinpath(main_folder, "dispenser_mask.nii.gz"),
             spacing
         )
-        convert_nifti_to_dicom_seg(joinpath(main_folder, "dispenser_mask.nii.gz"), reference_dicom_path, joinpath(main_folder, "dispenser_mask"))
+        if has_reference_dicom
+            convert_nifti_to_dicom_seg(joinpath(main_folder, "dispenser_mask.nii.gz"), reference_dicom_path, joinpath(main_folder, "dispenser_mask"))
+        end
 
     end
 
