@@ -308,7 +308,7 @@ function convert_nifti_to_dicom_seg(nifti_path::String, reference_dicom_path::St
     end
 
     # Ensure nifti_to_dicom_seg.py is in the correct path
-    # script_path = "/workspaces/synthethic_tomo/src/organised/nifti_to_dicom_seg.py"
+    # script_path = "/workspaces/CanIonSynth/src/organised/nifti_to_dicom_seg.py"
     script_path = joinpath(@__DIR__, "nifti_to_dicom_seg.py")
 
     if !isfile(script_path)

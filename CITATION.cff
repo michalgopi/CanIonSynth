@@ -1,14 +1,14 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
-title: "Synthetic Tomography Data Generator"
+title: "CanIonSynth: Synthetic CT Volumetric Data Generator for Aerosol Cans and Ionization Chambers"
 type: software
 version: 0.1.1
 authors:
   - family-names: "Mitura"
     given-names: "Jakub"
-abstract: "Julia and Python workflows for generating synthetic industrial CT phantom data, derived projections, and imaging artifacts for metrology and reconstruction studies."
-repository-code: "https://github.com/jakubMitura14/synth_data_generation"
-url: "https://github.com/jakubMitura14/synth_data_generation"
+abstract: "CanIonSynth provides Julia and Python workflows for generating synthetic CT volumetric data, derived projections, and imaging artifacts for aerosol cans and ionization chambers used in metrology and reconstruction studies."
+repository-code: "https://github.com/jakubMitura14/CanIonSynth"
+url: "https://github.com/jakubMitura14/CanIonSynth"
 license: "MIT"
 keywords:
   - tomography

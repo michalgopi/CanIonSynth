@@ -129,6 +129,6 @@ if __name__ == "__main__":
     
     
     
-# python3 /workspaces/synthethic_tomo/src/organised/get_approximate_radon_inverse.py /workspaces/synthethic_tomo/data/debug/25de96dc-bfb6-4022-be00-5df965b49283/example_can.nii.gz /workspaces/synthethic_tomo/data/debug/25de96dc-bfb6-4022-be00-5df965b49283/after_radon.nii.gz /workspaces/synthethic_tomo/data/debug/25de96dc-bfb6-4022-be00-5df965b49283/after_radon_plus_before.nii.gz
+# python3 /workspaces/CanIonSynth/src/organised/get_approximate_radon_inverse.py /workspaces/CanIonSynth/data/debug/25de96dc-bfb6-4022-be00-5df965b49283/example_can.nii.gz /workspaces/CanIonSynth/data/debug/25de96dc-bfb6-4022-be00-5df965b49283/after_radon.nii.gz /workspaces/CanIonSynth/data/debug/25de96dc-bfb6-4022-be00-5df965b49283/after_radon_plus_before.nii.gz
 
-#/workspaces/synthethic_tomo# python3 /workspaces/synthethic_tomo/src/organised/get_approximate_radon_inverse.py "/workspaces/synthethic_tomo/data/debug/0ae4e1be-5220-4c57-85a5-aaa0afe177c9/example_can.nii.gz" "/workspaces/synthethic_tomo/data/debug/iadrt_test.nii.gz"
+#/workspaces/CanIonSynth# python3 /workspaces/CanIonSynth/src/organised/get_approximate_radon_inverse.py "/workspaces/CanIonSynth/data/debug/0ae4e1be-5220-4c57-85a5-aaa0afe177c9/example_can.nii.gz" "/workspaces/CanIonSynth/data/debug/iadrt_test.nii.gz"

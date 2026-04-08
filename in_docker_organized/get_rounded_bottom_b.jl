@@ -410,7 +410,7 @@ end
 #     main_torus, inner_torus, outer_sphere, inner_sphere = results
 
 #     # Save using SimpleITK
-#     main_fold = "/workspaces/synthethic_tomo/data/torus"
+#     main_fold = "/workspaces/CanIonSynth/data/torus"
 #     if isdir(main_fold)
 #         rm(main_fold; force=true, recursive=true)
 #     end

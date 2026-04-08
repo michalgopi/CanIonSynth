@@ -53,7 +53,7 @@ np = pyimport("numpy")
 
 if !haskey(ENV, "SKIP_WANDB")
     wandb = pyimport("wandb")
-    wandb.init(project="synth")
+    wandb.init(project="CanIonSynth")
 else
     struct MockWandB
         init::Function
@@ -1272,7 +1272,7 @@ seed = abs(hash(uuid))
 
 
 # julia in_docker_organized/main_create_phantom_can.jl 128x128x128 true true ddac5ff5-1cc4-4447-9f44-96c372134657 true true 0.1
-# /workspaces/synthethic_tomo/.devcontainer# julia in_docker_organized/main_create_phantom_can.jl 256x256x256 true true ddac5ff5-1cc4-4447-9c44-96c372134657 true '/workspaces/synthethic_tomo/data/args.json'
+# /workspaces/CanIonSynth/.devcontainer# julia in_docker_organized/main_create_phantom_can.jl 256x256x256 true true ddac5ff5-1cc4-4447-9c44-96c372134657 true '/workspaces/CanIonSynth/data/args.json'
 #julia in_docker_organized/main_create_phantom_can.jl 256x256x256 false true b230290a-ec7f-413a-921f-b62dead16418 true true 0.1
 
 # /workspaces/devcontainer/.devcontainer/in_docker_organized/main_create_phantom_can.jl

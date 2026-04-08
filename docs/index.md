@@ -1,6 +1,6 @@
-# Synthetic Tomography Documentation
+# CanIonSynth Documentation
 
-This documentation covers installation, execution, validation, and reproducibility for the Synthetic Tomography Data Generator.
+This documentation covers installation, execution, validation, and reproducibility for CanIonSynth: Synthetic CT Volumetric Data Generator for Aerosol Cans and Ionization Chambers.
 
 ## Start Here
 

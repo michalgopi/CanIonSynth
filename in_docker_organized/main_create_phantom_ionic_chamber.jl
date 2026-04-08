@@ -56,7 +56,7 @@ np = pyimport("numpy")
 
 if !haskey(ENV, "SKIP_WANDB")
     wandb = pyimport("wandb")
-    wandb.init(project="synth")
+    wandb.init(project="CanIonSynth")
 else
     struct MockWandB
         init::Function
@@ -1588,7 +1588,7 @@ end
 
 # while true
     # uuid = UUIDs.uuid4()
-    # temp_fold="/workspaces/synthethic_tomo/data/debug/"
+    # temp_fold="/workspaces/CanIonSynth/data/debug/"
     temp_fold = mktempdir(; cleanup=false)
     # variable_spacing=true
     get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)

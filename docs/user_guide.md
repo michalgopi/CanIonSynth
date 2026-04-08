@@ -1,6 +1,6 @@
 # User Guide
 
-This guide explains how to install, validate, run, and reproduce the Synthetic Tomography Data Generator.
+This guide explains how to install, validate, run, and reproduce CanIonSynth: Synthetic CT Volumetric Data Generator for Aerosol Cans and Ionization Chambers.
 
 ## Overview
 
@@ -52,13 +52,13 @@ This repository also ships with:
 Build the container manually with:
 
 ```bash
-docker build -t synthetic-tomo .
+docker build -t canionsynth .
 ```
 
 Run it with:
 
 ```bash
-docker run -it --rm synthetic-tomo
+docker run -it --rm canionsynth
 ```
 
 If you use VS Code, open the repository and reopen it in the Dev Container.

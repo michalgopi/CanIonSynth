@@ -36,7 +36,7 @@ np = pyimport_conda("numpy", "numpy")
 skimage = pyimport_conda("skimage", "skimage")
 adrt = pyimport_conda("adrt", "adrt")
 
-# wandb.init(project="synth") # Disabled
+# wandb.init(project="CanIonSynth") # Disabled
 isinteractive() ? jim(:prompt, true) : prompt(:draw)
 
 # Adjust includes to point to the correct location relative to tests/

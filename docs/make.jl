@@ -4,7 +4,7 @@ using Documenter
 # Ideally, we would have a module. For now, we will just generate pages from markdown.
 
 makedocs(
-    sitename = "Synthetic Tomography",
+    sitename = "CanIonSynth",
     source = @__DIR__,
     build = joinpath(@__DIR__, "..", "docs-build"),
     format = Documenter.HTML(
@@ -26,6 +26,6 @@ makedocs(
 
 if get(ENV, "CI", nothing) == "true"
     deploydocs(
-        repo = "github.com/jakubMitura14/synth_data_generation.git",
+        repo = "github.com/jakubMitura14/CanIonSynth.git",
     )
 end
