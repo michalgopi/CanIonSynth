@@ -1500,7 +1500,7 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
         output_path_b = "$(main_folder)/after_radon_plus_before.nii.gz"
         script_path = joinpath(@__DIR__, "get_approximate_radon_inverse.py")
 
-        command = `python3 $script_path $input_path $output_path $output_path_b`
+        command = `$(PyCall.python) $script_path $input_path $output_path $output_path_b`
 
         run(command)
 
@@ -1515,13 +1515,19 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
 
     reference_dicom_path = joinpath(main_folder, "ionic_chamber")
     save_sitk_image_as_dicom(sitk.ReadImage(joinpath(main_folder, "ionic_chamber.nii.gz")), reference_dicom_path)
+    has_reference_dicom = isdir(reference_dicom_path) && !isempty(readdir(reference_dicom_path))
+    if !has_reference_dicom
+        println("Warning: reference DICOM series unavailable. Skipping DICOM-SEG conversion.")
+    end
     spacing = (params["spacing"][1], params["spacing"][2], params["spacing"][3])
 
     save_mask_as_nifti(
         Array(air_bool),
         joinpath(main_folder, "air_bool.nii.gz"),
         spacing)
-    convert_nifti_to_dicom_seg(joinpath(main_folder, "air_bool.nii.gz"), reference_dicom_path, joinpath(main_folder, "air_bool"))
+    if has_reference_dicom
+        convert_nifti_to_dicom_seg(joinpath(main_folder, "air_bool.nii.gz"), reference_dicom_path, joinpath(main_folder, "air_bool"))
+    end
 
 
     save_mask_as_nifti(
@@ -1530,14 +1536,18 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
         spacing
     )
 
-    convert_nifti_to_dicom_seg(joinpath(main_folder, "copper_el_bool.nii.gz"), reference_dicom_path, joinpath(main_folder, "copper_el_bool"))
+    if has_reference_dicom
+        convert_nifti_to_dicom_seg(joinpath(main_folder, "copper_el_bool.nii.gz"), reference_dicom_path, joinpath(main_folder, "copper_el_bool"))
+    end
 
     save_mask_as_nifti(
         Array(combined_bool_array_electrode),
         joinpath(main_folder, "combined_bool_array_electrode.nii.gz"),
         spacing
     )
-    convert_nifti_to_dicom_seg(joinpath(main_folder, "combined_bool_array_electrode.nii.gz"), reference_dicom_path, joinpath(main_folder, "combined_bool_array_electrode"))
+    if has_reference_dicom
+        convert_nifti_to_dicom_seg(joinpath(main_folder, "combined_bool_array_electrode.nii.gz"), reference_dicom_path, joinpath(main_folder, "combined_bool_array_electrode"))
+    end
 
     if("graphite_electrode_connection" in keys(named_res))
         save_mask_as_nifti(
@@ -1548,7 +1558,7 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
         # convert_nifti_to_dicom_seg(joinpath(main_folder, "graphite_electrode_connection.nii.gz"), reference_dicom_path, joinpath(main_folder, "graphite_electrode_connection"))
     end
 
-    file_name = "ionic_ch_$(add_str)_$(dims[1])|$(dims[2])|$(dims[3])_add_radon_$(add_radon)_$uuid"
+    file_name = "ionic_ch_$(add_str)_$(dims[1])x$(dims[2])x$(dims[3])_add_radon_$(add_radon)_$uuid"
 
     zip_path = "$(temp_fold)/$(file_name).zip"
     shutil = pyimport("shutil")

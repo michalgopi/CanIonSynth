@@ -1,0 +1,21 @@
+{
+  "title": "Synthetic Tomography Data Generator",
+  "description": "Julia and Python workflows for generating synthetic can and ionic chamber phantoms, optional tomographic transforms, and derived NIfTI or DICOM-oriented artifacts for industrial CT metrology and reconstruction studies.",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Mitura, Jakub"
+    }
+  ],
+  "keywords": [
+    "tomography",
+    "computed tomography",
+    "synthetic data",
+    "industrial CT",
+    "metrology",
+    "phantom generation"
+  ],
+  "notes": "Create a tagged GitHub release before archiving with Zenodo so the deposited record matches the SoftwareX submission."
+}

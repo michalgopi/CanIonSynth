@@ -1,77 +1,112 @@
 # Synthetic Tomography Data Generator
 
-This repository creates synthetic phantoms and data for tomographic reconstruction. It generates NIfTI files and optionally DICOM and DICOM-SEG files.
+Synthetic Tomography Data Generator produces synthetic industrial CT datasets for phantom-based metrology and reconstruction workflows. The repository combines Julia geometry generation with Python-based format conversion and reconstruction helpers.
 
-## Documentation
+## Key Capabilities
 
-*   [Manual Testing and Visualization](docs/manual_testing_visualization.md) - **Guide to running comprehensive manual tests and visualizing results.**
-*   [Manual Verification Guide](docs/manual_verification.md) - Detailed checklist for verification.
-*   [System Architecture](docs/system_architecture.md) - Overview of the system components.
-*   [Phantom Types](docs/phantom_types.md) - Details on Can and Ionic Chamber phantoms.
-*   [Volume Calculation](docs/volume_calculation.md) - Explanation of analytical and numerical methods.
+- Generate parameterized can phantoms with fluids, meniscus effects, internal objects, and optional defects.
+- Generate parameterized ionic chamber phantoms with layered materials and multiple tip geometries.
+- Export NIfTI volumes and masks, with optional DICOM and DICOM-SEG conversion when external tools are available.
+- Optionally run forward and inverse tomographic steps for reconstruction-oriented experiments.
+- Reproduce runs from JSON configurations and validate the workflows with an automated test suite.
 
-## Setup
+## Repository Layout
 
-### Prerequisites
+- `in_docker_organized/`: Main Julia and Python generation workflows.
+- `tests/`: Automated tests, JSON fixtures, and comparison helpers.
+- `docs/`: User guide, workflow notes, architecture, and verification material.
+- `examples/`: Example entry points and helper scripts.
+- `packages/`: Vendored dependencies, including the patched `ImagePhantoms.jl` copy used by the project.
+- `Project.toml` and `Manifest.toml`: Julia environment definition and lockfile.
+- `requirements.txt`: Python dependencies.
+- `Dockerfile` and `.devcontainer/`: Reproducible containerized environment.
 
-*   Julia 1.10+
-*   Python 3.10+
+## Requirements
 
-### Installation
+- Julia 1.10+
+- Python 3.10+
+- Optional system tools: `nii2dcm` for DICOM conversion and `gcloud` for uploads
 
-1.  **Install Python dependencies:**
+## Installation
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+1. Install Python dependencies:
 
-2.  **Instantiate Julia environment:**
+```bash
+pip install -r requirements.txt
+```
 
-    ```bash
-    julia --project=. -e 'using Pkg; Pkg.instantiate()'
-    ```
+2. Instantiate the Julia environment:
 
-## Running Tests
+```bash
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+```
 
-To run the full test suite (which also verifies the environment setup):
+3. If you want a fully reproducible environment, build the provided container instead of configuring the host manually:
+
+```bash
+docker build -t synthetic-tomo .
+```
+
+## Quick Start
+
+Run the main test suite:
 
 ```bash
 julia --project=. tests/run_tests.jl
 ```
 
-## Running Generation Scripts
-
-You can run the generation scripts directly. Ensure you activate the project environment.
-
-**Example: Generate Can Phantom**
+Generate a can phantom from the source directory:
 
 ```bash
-cd in_docker_organized
-julia --project=.. main_create_phantom_can.jl 32x32x32 false false <uuid> false false 0.0
+julia --project=. in_docker_organized/main_create_phantom_can.jl 32x32x32 false false run-001 false false 0.0
 ```
 
-Arguments:
-1.  Dimensions (e.g., `32x32x32`)
-2.  Add Radon transform (`true`/`false`)
-3.  Variable spacing (`true`/`false`)
-4.  UUID (can be random string)
-5.  Randomize (`true`/`false`)
-6.  Add smoothing (`true`/`false`)
-7.  Additive noise level (float)
+Generate an ionic chamber phantom:
 
-See `examples/` directory for ready-to-run shell scripts.
+```bash
+julia --project=. in_docker_organized/main_create_phantom_ionic_chamber.jl 32x32x32 false false run-002 false false 0.0 tests/configs/ionic_chamber.json
+```
 
-## Repository Structure
+## Reproducibility
 
-*   `in_docker_organized/`: Main generation scripts (`main_create_phantom_can.jl`, etc.).
-*   `tests/`: Test suite and configurations.
-*   `packages/`: Vendored dependencies (e.g., patched `ImagePhantoms.jl`).
-*   `docs/`: Documentation.
-*   `examples/`: Usage examples.
-*   `scripts/`: Helper scripts (visualization, etc.).
-*   `Project.toml` / `Manifest.toml`: Julia dependencies lock files.
-*   `requirements.txt`: Python dependencies.
+- The Julia dependency graph is locked in `Manifest.toml`.
+- Python dependencies are listed in `requirements.txt`.
+- A containerized environment is provided through `Dockerfile` and `.devcontainer/`.
+- Test runs can be made deterministic with `FIXED_UUIDS=1`.
+- Upload and experiment tracking can be disabled with `SKIP_UPLOAD=true` and `SKIP_WANDB=true`.
 
-## CI/CD
+## Output Artifacts
 
-The repository uses GitHub Actions for CI. See `.github/workflows/ci.yml`.
+Typical runs produce:
+
+- `*.nii.gz` phantom volumes and component masks
+- `argss.json` or `ionic_chamber_params.json` parameter logs
+- optional projection or reconstruction artifacts
+- optional DICOM and DICOM-SEG outputs when external tooling is installed
+
+## Documentation
+
+- [User Guide](docs/user_guide.md)
+- [Workflow Summary](docs/workflow_summary.md)
+- [System Architecture](docs/system_architecture.md)
+- [Phantom Types](docs/phantom_types.md)
+- [Volume Calculation](docs/volume_calculation.md)
+- [Manual Testing and Visualization](docs/manual_testing_visualization.md)
+- [Manual Verification Guide](docs/manual_verification.md)
+- [SoftwareX Submission Notes](SOFTWAREX_SUBMISSION.md)
+
+## Citation
+
+Citation metadata for software archiving and paper preparation is provided in `CITATION.cff`.
+
+## License
+
+This repository is licensed under the MIT License. See `LICENSE`.
+
+## Publishing Notes
+
+The repository includes SoftwareX-oriented citation and archive metadata and a repository-level open-source license. The remaining publication steps are release-oriented rather than repository-structure blockers.
+
+## CI
+
+GitHub Actions workflows are defined in `.github/workflows/ci.yml` and `.github/workflows/docs.yml`.

@@ -974,7 +974,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
         output_path_b = "$(main_folder)/after_radon_plus_before.nii.gz"
         script_path = joinpath(@__DIR__, "get_approximate_radon_inverse.py")
 
-        command = `python3 $script_path $input_path $output_path $output_path_b`
+        command = `$(PyCall.python) $script_path $input_path $output_path $output_path_b`
 
         run(command)
 

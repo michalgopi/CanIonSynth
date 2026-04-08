@@ -5,17 +5,22 @@ using Documenter
 
 makedocs(
     sitename = "Synthetic Tomography",
+    source = @__DIR__,
+    build = joinpath(@__DIR__, "..", "docs-build"),
     format = Documenter.HTML(
-        prettyurls = get(ENV, "CI", nothing) == "true"
+        prettyurls = get(ENV, "CI", nothing) == "true",
+        inventory_version = "dev"
     ),
     pages = [
-        "Home" => "user_guide.md",
+        "Home" => "index.md",
+        "User Guide" => "user_guide.md",
         "Workflow Summary" => "workflow_summary.md",
-        "Functions Reference" => "functions_reference.md",
-        "Cleanup Proposals" => "cleanup_proposals.md"
+        "Functions Reference" => "functions_reference.md"
     ]
 )
 
-deploydocs(
-    repo = "github.com/jakubMitura14/synth_data_generation.git",
-)
+if get(ENV, "CI", nothing) == "true"
+    deploydocs(
+        repo = "github.com/jakubMitura14/synth_data_generation.git",
+    )
+end

@@ -1,0 +1,11 @@
+.git/
+.github/
+.idea/
+.venv/
+__pycache__/
+*.pyc
+temp_ImagePhantoms/
+tests/comparisons/
+final_test.log
+oldDockerfileOld.txt
+Dockerfile copy

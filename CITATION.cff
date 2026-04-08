@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "Synthetic Tomography Data Generator"
+type: software
+authors:
+  - family-names: "Mitura"
+    given-names: "Jakub"
+abstract: "Julia and Python workflows for generating synthetic industrial CT phantom data, derived projections, and imaging artifacts for metrology and reconstruction studies."
+repository-code: "https://github.com/jakubMitura14/synth_data_generation"
+url: "https://github.com/jakubMitura14/synth_data_generation"
+license: "MIT"
+keywords:
+  - tomography
+  - computed tomography
+  - synthetic data
+  - industrial CT
+  - metrology
+  - phantom generation
