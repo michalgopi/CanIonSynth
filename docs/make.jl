@@ -24,7 +24,7 @@ makedocs(
     ]
 )
 
-if get(ENV, "CI", nothing) == "true"
+if get(ENV, "DOCS_DEPLOY", "false") == "true"
     deploydocs(
         repo = "github.com/jakubMitura14/CanIonSynth.git",
     )

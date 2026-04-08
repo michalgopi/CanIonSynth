@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 title: "CanIonSynth: Synthetic CT Volumetric Data Generator for Aerosol Cans and Ionization Chambers"
 type: software
-version: 0.1.1
+version: 0.1.2
 authors:
   - family-names: "Mitura"
     given-names: "Jakub"

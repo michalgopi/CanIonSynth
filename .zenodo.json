@@ -2,7 +2,7 @@
   "title": "CanIonSynth: Synthetic CT Volumetric Data Generator for Aerosol Cans and Ionization Chambers",
   "description": "CanIonSynth provides Julia and Python workflows for generating synthetic volumetric CT data for aerosol can and ionization chamber phantoms, including optional tomographic transforms and derived NIfTI or DICOM-oriented artifacts for metrology and reconstruction studies.",
   "upload_type": "software",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "access_right": "open",
   "license": "MIT",
   "creators": [
