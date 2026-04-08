@@ -1,41 +1,86 @@
 # System Architecture Overview
 
-The Synthetic Tomography Data Generation System is designed to create realistic phantom models for industrial computed tomography (CT).
+The Synthetic Tomography Data Generator is organized as a small Julia-centered application with Python helper scripts around the edges.
 
-## Core Components
+## Runtime Layers
 
-1.  **Coordinate Script (`coordinate_phantom_create.py`)**
-    *   **Role**: Orchestrator.
-    *   **Function**: Reads JSON configuration, selects the appropriate phantom script (Can or Ionic Chamber), passes parameters, and manages the execution flow.
-    *   **Modes**: Folder-based generation (processing multiple JSONs) or Batch generation (generating N random phantoms).
+### 1. Julia Entry Points
 
-2.  **Generation Scripts (Julia)**
-    *   **`main_create_phantom_can.jl`**:
-        *   Builds can-based phantoms.
-        *   Features: Fluid layers, meniscus, balls, pipes, dispensers, steel (flat) vs aluminum (rounded) bottoms.
-    *   **`main_create_phantom_ionic_chamber.jl`**:
-        *   Builds ionic chamber phantoms.
-        *   Features: Multi-layer electrode structures (Copper, Insulator, Aluminum, Graphite), various shapes (Ball, Cylinder, Lollipop).
+The user-facing generation layer lives in:
 
-3.  **CT Simulation (`get_approximate_radon_inverse.py`)**
-    *   **Role**: Simulation of acquisition and reconstruction.
-    *   **Function**: Performs forward projection (Radon transform) to create sinograms and inverse reconstruction (Filtered Back-Projection) to simulate the CT imaging chain.
+- `in_docker_organized/main_create_phantom_can.jl`
+- `in_docker_organized/main_create_phantom_ionic_chamber.jl`
 
-4.  **DICOM Conversion (`save_dicom.py`, `nifti_to_dicom_seg.py`)**
-    *   **Role**: Data formatting.
-    *   **Function**: Converts NIfTI volumetric data into standard DICOM slices and DICOM-SEG objects, preserving medical metadata (Window/Level, Rescale Slope/Intercept).
+These scripts parse arguments, create or load parameter sets, generate voxelized phantoms, save outputs, and optionally trigger downstream processing such as Radon reconstruction and DICOM export.
 
-5.  **Docker Environment**
-    *   **Role**: Reproducibility.
-    *   **Function**: Encapsulates all dependencies (Julia 1.10, Python 3.10, ADRT, SimpleITK) to ensure consistent execution across platforms.
+### 2. Geometry Construction Layer
 
-## Workflow
+The lower-level geometry logic is split across:
 
-1.  **Configuration**: User provides a JSON file or parameters.
-2.  **Orchestration**: `coordinate_phantom_create.py` parses config and calls Julia.
-3.  **Generation**: Julia scripts create geometric primitives, apply boolean operations, and generate voxel grids.
-4.  **Post-Processing**:
-    *   Noise injection (Gaussian/Uniform).
-    *   Smoothing (Gaussian blur).
-    *   (Optional) Radon Transform cycle.
-5.  **Output**: NIfTI files, DICOM series, and JSON metadata are saved to disk.
+- `in_docker_organized/get_geometry_main.jl`
+- `in_docker_organized/get_rounded_bottom_b.jl`
+- `in_docker_organized/volume_integration.jl`
+
+This layer is responsible for:
+
+- defining the can and ionic chamber primitives
+- composing complex shapes from cylinders, ellipsoids, half-spheres, and related masks
+- computing analytical volume estimates for comparison against voxel counts
+
+### 3. Image IO And Interop Layer
+
+`in_docker_organized/geometry_utils.jl` contains the image manipulation and export utilities used by both generators.
+
+Key responsibilities include:
+
+- writing NIfTI outputs with spatial metadata
+- rotating or shifting masks when the geometry requires it
+- attempting DICOM slice export through `nii2dcm`
+- launching the Python DICOM-SEG conversion helper
+
+### 4. Python Helper Layer
+
+The Python scripts are focused on tasks that are easier to express with Python imaging libraries.
+
+- `in_docker_organized/get_approximate_radon_inverse.py`: approximate projection and reconstruction helper
+- `in_docker_organized/nifti_to_dicom_seg.py`: DICOM-SEG conversion helper
+- `scripts/visualize_nifti.py`: visualization helper for manual inspection
+- `scripts/generate_all_manual_tests.py`: manual test batch generator
+
+### 5. Validation And Documentation Layer
+
+- `tests/setup_env.jl`: environment bootstrap and `PyCall` binding
+- `tests/run_tests.jl`: end-to-end test harness for both main generators
+- `docs/`: user documentation and reviewer-facing project notes
+
+### 6. Environment Layer
+
+Reproducibility depends on:
+
+- `Project.toml` and `Manifest.toml` for Julia
+- `requirements.txt` for Python
+- `Dockerfile` and `.devcontainer/devcontainer.json` for containerized development
+- GitHub Actions workflows for tests and documentation builds
+
+## Data Flow
+
+The normal local execution path is:
+
+1. an operator runs one of the Julia entry points
+2. the script resolves configuration from arguments and optional JSON
+3. Julia geometry helpers build the phantom and masks
+4. the generator saves NIfTI outputs and parameter logs
+5. optional Python helpers generate Radon-derived outputs or DICOM-SEG artifacts
+6. the script zips the result directory and either keeps it locally or uploads it
+
+## External Integrations
+
+Several integrations are optional rather than required for local use.
+
+- Weights and Biases logging can be disabled with `SKIP_WANDB=true`.
+- Google Cloud Storage upload can be disabled with `SKIP_UPLOAD=true`.
+- DICOM slice export is skipped when `nii2dcm` is unavailable.
+
+## Coordinator Script Status
+
+`in_docker_organized/coordinate_phantom_create.py` is still present, but it is tightly coupled to specific Google Cloud Storage locations and temporary filesystem paths. It is better viewed as a project-specific automation helper than as the primary documented interface for local users.

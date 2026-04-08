@@ -15,7 +15,12 @@ makedocs(
         "Home" => "index.md",
         "User Guide" => "user_guide.md",
         "Workflow Summary" => "workflow_summary.md",
-        "Functions Reference" => "functions_reference.md"
+        "System Architecture" => "system_architecture.md",
+        "Phantom Types" => "phantom_types.md",
+        "Functions Reference" => "functions_reference.md",
+        "Volume Calculation" => "volume_calculation.md",
+        "Manual Testing" => "manual_testing_visualization.md",
+        "Manual Verification" => "manual_verification.md"
     ]
 )
 

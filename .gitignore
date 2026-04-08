@@ -2,7 +2,11 @@ infostrateg-b-f395071711c1.json
 wandb/
 .idea/
 manual_test_outputs/
+.venv/
 .softwarex-venv/
+LocalPreferences.toml
+final_test.log
+temp_ImagePhantoms/
 docs-build/
 docs/build/
 

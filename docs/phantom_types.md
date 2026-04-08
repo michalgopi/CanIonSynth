@@ -1,57 +1,82 @@
 # Phantom Types
 
-The system simulates two main classes of objects commonly scanned in industrial CT: Cans and Ionic Chambers.
+The repository generates two phantom families: cans and ionic chambers.
 
-## 1. Cans
+## Can Phantoms
 
-Cans are simulated as cylindrical containers holding fluids and objects.
+Can phantoms model filled industrial containers with internal structures and fluid interfaces.
 
-### Steel Cans
-*   **Geometry**: Cylindrical body with a **flat bottom**.
-*   **Characteristics**:
-    *   Thinner walls (0.019–0.025 cm).
-    *   Higher material density.
-    *   Bottom constructed from two ellipsoids creating a flat profile.
+### Shared Can Features
 
-### Aluminum Cans
-*   **Geometry**: Cylindrical body with a **rounded bottom** (domed).
-*   **Characteristics**:
-    *   Thicker walls (0.028–0.044 cm).
-    *   Lower material density.
-    *   **Torus Geometry**: The bottom edge is modeled using a torus to create a smooth, curved transition to the walls. The center of the bottom features a spherical dome ("curvature").
+- cylindrical outer wall with configurable thickness
+- configurable top and bottom curvature
+- one or two fluid phases with different densities
+- optional meniscus geometry and tilted fluid surface
+- optional internal objects such as balls, pipe structures, and dispenser components
 
-### Internal Features
-*   **Fluids**:
-    *   **Single or Dual Phase**: Can contain one or two distinct fluid layers with different densities.
-    *   **Meniscus**: Simulation of surface tension effects (curved fluid surface) at the walls.
-    *   **Tilting**: Fluid surface can be tilted (simulating a non-level scan) using x/y cut angles.
-*   **Objects**:
-    *   **Balls**: Small spheres placed at the bottom (single or pairs).
-    *   **Pipe**: A cylindrical pipe structure inserted into the fluid.
-    *   **Dispenser**: A mechanism at the top of the can.
+### Flat-Bottom Can
 
-## 2. Ionic Chambers
+Use `rounded_bottom=false` to create a can with a flatter base profile. This variant is useful when you want a sharper wall-to-bottom transition.
 
-Ionic chambers are precision instruments used for radiation detection. The simulation models their complex internal multi-material structure.
+### Rounded-Bottom Can
 
-### Common Structure
-All chambers share a concentric layer design:
-1.  **Central Copper Electrode**: Innermost conductive element.
-2.  **Inner Insulator**: Polyethylene layer.
-3.  **Inner Aluminum Layer**: Shielding.
-4.  **Outer Insulator**: Polyethylene layer.
-5.  **Outer Aluminum Layer**: Secondary shielding.
-6.  **Graphite Housing**: Outermost structural layer.
-7.  **Air Cavity**: The sensitive volume between electrodes.
+Use `rounded_bottom=true` to create a can with a curved base and smoother lower transition. The checked-in `tests/configs/can_phantom.json` follows this family.
 
-### Shapes
-1.  **Ball-shaped**: Spherical top. Used for isotropic response.
-2.  **Rounded-top Cylinder**: Cylindrical base with a half-ellipsoid cap.
-3.  **Flat-top Cylinder** (Square-top): Cylindrical base with a flat top.
-4.  **Lollipop-shaped**: Thin stem connected to a flat, wider cylindrical head.
+### Important Can Parameters
 
-### Standardized Sizes (`new_flat_sizes`)
-For systematic testing, standardized volumes can be generated:
-*   **Version 1**: ~60,000 mm³ (Radius 20mm, Height 48mm).
-*   **Version 2**: ~30,000 mm³ (Radius 15mm, Height 42.9mm).
-*   **Version 3**: ~10,000 mm³ (Radius 10mm, Height 32.5mm).
+- `bigger_cyl_size`: main can dimensions
+- `cylinder_wall_thickness`: wall thickness
+- `density_inside` and `density_inside_b`: fluid densities
+- `dual_phase_percentage`: relative fluid split when using two phases
+- `x_cut_angle` and `y_cut_angle`: tilted fluid surface controls
+- `menisc_radius` and related meniscus parameters: fluid curvature controls
+- `add_pipe`, `first_ball`, `second_ball`: optional internal features
+
+## Ionic Chamber Phantoms
+
+Ionic chamber phantoms model layered radiation-measurement devices with multiple materials and head shapes.
+
+### Shared Chamber Structure
+
+Most chamber variants are built from concentric or overlapping cylindrical elements representing:
+
+- graphite housing
+- aluminum shielding layers
+- insulation layers
+- graphite and copper electrode components
+- internal air cavity
+
+### Supported Chamber Variants
+
+- `rounded_top=true`: rounded cylindrical chamber
+- `square_top=true`: flat-top chamber
+- `ball_like=true`: ball-like head shape
+- `lolipop_like=true`: lollipop-style head with narrow neck
+
+The repository already contains reproducible selectors for several of these shapes:
+
+- `tests/configs/ionic_chamber_square.json`
+- `tests/configs/ionic_chamber_ball.json`
+- `tests/configs/ionic_chamber_lolipop.json`
+
+### Standardized Sizes
+
+When `new_flat_sizes=true`, the generator can produce standardized chamber dimensions controlled by `rand_ver`.
+
+- `rand_ver=1`: largest standard size family
+- `rand_ver=2`: medium standard size family
+- `rand_ver=3`: smallest standard size family
+
+### Important Chamber Parameters
+
+- `total_len`, `base_len`, `main_radius`: main geometry dimensions
+- `air_thickness`: air cavity thickness
+- `graphite_density`, `copper_density`, `aluminium_density`, `insulation_density`: material densities
+- `graphite_electrode_radius`, `copper_radius`: electrode sizes
+- `inner_insluation_thickness`, `outer_insluation_thickness`: insulation thicknesses
+- `aluminium_inner_thicness`, `aluminium_outer_thicness`: shield thicknesses
+- `add_graphite_in_copper`, `elongate_copper`, `add_spiral`: optional structure variations
+
+## Choosing A Phantom Type
+
+Use can phantoms when you need fluid interfaces, meniscus behavior, or internal inclusions inside a container. Use ionic chamber phantoms when you need layered multi-material geometry with well-defined internal air cavities and controlled electrode structure.
