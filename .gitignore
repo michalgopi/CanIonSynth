@@ -2,4 +2,7 @@ infostrateg-b-f395071711c1.json
 wandb/
 .idea/
 manual_test_outputs/
+.softwarex-venv/
+docs-build/
+docs/build/
 

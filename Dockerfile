@@ -1,10 +1,14 @@
-# Use a standard Ubuntu base image with Python pre-installed
+# Use a slim Python base image and install Julia manually.
 FROM python:3.10-slim-bullseye
 
 ARG JULIA_RELEASE=1.10
 ARG JULIA_VERSION=1.10.4
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV SKIP_UPLOAD=true
+ENV SKIP_WANDB=true
+ENV JULIA_HISTORY=/workspace/.julia_history
 
 # Install basic dependencies
 RUN apt-get update && \
@@ -20,72 +24,31 @@ RUN apt-get update && \
 RUN curl -s -L https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_RELEASE}/julia-${JULIA_VERSION}-linux-x86_64.tar.gz | \
     tar -C /usr/local -x -z --strip-components=1 -f -
 
-# Install additional required packages
+# Install additional runtime dependencies
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends \
     vim net-tools ffmpeg pkg-config && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install libcurl from source (keeping this for compatibility)
-RUN wget https://curl.se/download/curl-7.81.0.tar.gz && \
-    tar -xvf curl-7.81.0.tar.gz && cd curl-7.81.0 && \
-    ./configure --with-openssl && make && make install && \
-    cd / && rm -rf curl-7.81.0*
-
-# Set up user environment
-RUN mkdir -m 0777 /data
-RUN mkdir -p $HOME/data
-
-ENV JULIA_HISTORY=/data/logs/repl_history.jl
-
-# Copy the data download script
-COPY download_data.py /workspace/download_data.py
-RUN python3 /workspace/download_data.py
+# Copy the full repository so tests and docs are available inside the image.
+COPY . /workspace
 
 # Setup thread management for Julia
 COPY setup_threads.sh /etc/profile.d/
 
-# Install Google Cloud SDK
-RUN curl -sSL https://sdk.cloud.google.com | bash
+# Install Python dependencies and pin numpy for ADRT compatibility.
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install -r /workspace/requirements.txt && \
+    python3 -m pip install numpy==1.23.2
 
-# Install Julia packages
-RUN julia -e 'using Pkg; Pkg.add(url="https://github.com/jakubMitura14/ImagePhantoms.jl.git")'
-RUN julia -e 'using Pkg; Pkg.add(["Meshes","ImageFiltering","Accessors","UUIDs","JSON","HDF5","ImagePhantoms","MIRTjim","ImageGeoms","Sinograms", "PyCall", "FFTW", "LazyGrids", "Unitful", "Plots", "Revise"])'
+# Instantiate the Julia environment using the checked-in lockfile.
+RUN julia --project=/workspace -e 'using Pkg; Pkg.instantiate()'
 
-# Set up Google Cloud credentials
-ENV PATH $PATH:/root/google-cloud-sdk/bin
-COPY infostrateg-b-f395071711c1.json /root/.devcontainer/infostrateg-b-f395071711c1.json
+# Make the container start in an interactive, reviewer-friendly shell.
+RUN chmod +x /workspace/entrypoint.sh
 
-# Copy application files
-COPY generate-random_can_low_res.jl /root/.devcontainer/generate-random_can_low_res.jl
-COPY get_geometry_main.jl /root/.devcontainer/get_geometry_main.jl
-COPY CtFanArc_params.jl /root/.devcontainer/CtFanArc_params.jl
+WORKDIR /workspace
+ENTRYPOINT ["/bin/bash", "/workspace/entrypoint.sh"]
 
-# Install Python packages (without CUDA dependencies)
-RUN python3 -m pip install SimpleITK wandb adrt h5py scikit-image pydicom==2.4.4 
-#pydicom-seg
-
-# Install nii2dcm from source
-RUN git clone https://github.com/tomaroberts/nii2dcm.git /tmp/nii2dcm && \
-    cd /tmp/nii2dcm && \
-    python3 -m pip install -r requirements.txt && \
-    python3 -m pip install . && \
-    cd / && \
-    rm -rf /tmp/nii2dcm
-
-# Ensure numpy compatibility
-RUN python3 -m pip install numpy==1.23.2
-
-# Copy entrypoint and organized code 
-COPY entrypoint.sh /root/.devcontainer/entrypoint.sh
-COPY in_docker_organized/ /root/.devcontainer/in_docker_organized/
-
-# Make entrypoint executable
-RUN chmod +x /root/.devcontainer/entrypoint.sh
-
-WORKDIR /root/.devcontainer
-ENTRYPOINT ["/bin/bash", "/root/.devcontainer/entrypoint.sh"]
-
-#rozmycie i szum wyciagniecie tez do glownego ; ilosc do glownego
-# w glownym sciezka do bucketa i tam lista jsonow
+# Use the shell started by entrypoint.sh unless a command is provided.
