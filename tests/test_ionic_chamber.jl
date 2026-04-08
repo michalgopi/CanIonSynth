@@ -33,7 +33,7 @@ const wandb = MockWandB((args...; kwargs...) -> nothing, (args...; kwargs...) ->
 sitk = pyimport_conda("SimpleITK", "simpleitk")
 np = pyimport_conda("numpy", "numpy")
 
-wandb.init(project="synth")
+wandb.init(project="CanIonSynth")
 isinteractive() ? jim(:prompt, true) : prompt(:draw)
 include.([
     "../in_docker_organized/get_geometry_main.jl",

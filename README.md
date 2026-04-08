@@ -1,6 +1,8 @@
-# Synthetic Tomography Data Generator
+# CanIonSynth
 
-Synthetic Tomography Data Generator creates synthetic industrial CT phantoms, segmentation masks, and optional reconstruction artifacts for metrology and reconstruction studies. The main workflows are implemented in Julia, with Python helper scripts for visualization, DICOM-SEG conversion, and approximate Radon or inverse-Radon processing.
+CanIonSynth: Synthetic CT Volumetric Data Generator for Aerosol Cans and Ionization Chambers.
+
+CanIonSynth creates synthetic industrial CT phantoms, segmentation masks, and optional reconstruction artifacts for metrology and reconstruction studies focused on aerosol cans and ionization chambers. The main workflows are implemented in Julia, with Python helper scripts for visualization, DICOM-SEG conversion, and approximate Radon or inverse-Radon processing.
 
 ## What The Repository Does
 
@@ -122,13 +124,13 @@ This repository ships with:
 Build the image with:
 
 ```bash
-docker build -t synthetic-tomo .
+docker build -t canionsynth .
 ```
 
 Open a shell in the container with:
 
 ```bash
-docker run -it --rm synthetic-tomo
+docker run -it --rm canionsynth
 ```
 
 ## Repository Layout

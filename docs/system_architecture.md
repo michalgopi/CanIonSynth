@@ -1,6 +1,6 @@
 # System Architecture Overview
 
-The Synthetic Tomography Data Generator is organized as a small Julia-centered application with Python helper scripts around the edges.
+CanIonSynth is organized as a small Julia-centered application with Python helper scripts around the edges.
 
 ## Runtime Layers
 
