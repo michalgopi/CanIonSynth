@@ -69,6 +69,8 @@ julia --project=docs docs/make.jl
 
 Run the main generators from the repository root.
 
+For local runs, keep `SKIP_WANDB=true` and `SKIP_UPLOAD=true` set unless you have explicitly configured Weights and Biases and Google Cloud Storage uploads in your environment.
+
 ### Can Phantom
 
 ```bash

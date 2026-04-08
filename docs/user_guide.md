@@ -112,6 +112,8 @@ julia --project=. <script> <dims> <add_radon> <variable_spacing> <uuid> <randomi
 | 7 | `additive_noise` | Adds Gaussian noise, for example `0.0` or `0.1`. |
 | 8 | `json_path` | Optional JSON config path for reproducible parameter sets. |
 
+For local generation, keep `SKIP_WANDB=true` and `SKIP_UPLOAD=true` set unless you have configured those external services on purpose.
+
 ## Running A Can Phantom
 
 Generate a can phantom with internal defaults:
