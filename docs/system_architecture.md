@@ -42,7 +42,7 @@ Key responsibilities include:
 
 The Python scripts are focused on tasks that are easier to express with Python imaging libraries.
 
-- `in_docker_organized/get_approximate_radon_inverse.py`: approximate projection and reconstruction helper
+- `in_docker_organized/radon_iradon_3d.py`: two-stage parallel Radon and inverse-Radon reconstruction helper; accepts `--n-theta` (projection angle count, default 10) and `--noise-level` (sinogram noise scale 0–1, default 0); invoked by the Julia entry points when `add_radon=true`
 - `in_docker_organized/nifti_to_dicom_seg.py`: DICOM-SEG conversion helper
 - `scripts/visualize_nifti.py`: visualization helper for manual inspection
 - `scripts/generate_all_manual_tests.py`: manual test batch generator

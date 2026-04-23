@@ -23,6 +23,8 @@ __precompile__(false)
 
 
     args_json_path = length(ARGS) >= 8 ? ARGS[8] : " "
+    radon_noise_level = length(ARGS) >= 9 ? parse(Float64, ARGS[9]) : 0.0
+    radon_n_theta = length(ARGS) >= 10 ? parse(Int, ARGS[10]) : 10
 
 # __precompile__(false)  # Add this at the very top
 # using Pkg;
@@ -1494,15 +1496,20 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
     print(" \n add_radon $add_radon \n")
     if (add_radon)
         print("\n execuuute radon \n")
-        # Execute the Python script using the run function
         input_path = "$(main_folder)/ionic_chamber.nii.gz"
         output_path = "$(main_folder)/after_radon.nii.gz"
         output_path_b = "$(main_folder)/after_radon_plus_before.nii.gz"
-        script_path = joinpath(@__DIR__, "get_approximate_radon_inverse.py")
+        script_path = joinpath(@__DIR__, "radon_iradon_3d.py")
 
-        command = `$(PyCall.python) $script_path $input_path $output_path $output_path_b`
+        command = `$(PyCall.python) $script_path $input_path --output-filename $output_path --noise-level $radon_noise_level --n-theta $radon_n_theta`
 
         run(command)
+
+        np_before = sitk.GetArrayFromImage(sitk.ReadImage(input_path))
+        np_after = sitk.GetArrayFromImage(sitk.ReadImage(output_path))
+        avg_img = sitk.GetImageFromArray(np.divide(np.add(np_before, np_after), 2.0))
+        avg_img.CopyInformation(sitk.ReadImage(output_path))
+        sitk.WriteImage(avg_img, output_path_b)
 
         save_sitk_image_as_dicom(sitk.ReadImage(output_path), "$(main_folder)/after_radon")
         save_sitk_image_as_dicom(sitk.ReadImage(output_path_b), "$(main_folder)/after_radon_plus_before")
@@ -1589,6 +1596,12 @@ end
 # while true
     # uuid = UUIDs.uuid4()
     # temp_fold="/workspaces/CanIonSynth/data/debug/"
+    if args_json_path != " " && isfile(args_json_path)
+        _radon_json = JSON.parsefile(args_json_path)
+        radon_noise_level = Float64(get(_radon_json, "radon_noise_level", radon_noise_level))
+        radon_n_theta = Int(get(_radon_json, "radon_n_theta", radon_n_theta))
+    end
+
     temp_fold = mktempdir(; cleanup=false)
     # variable_spacing=true
     get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)

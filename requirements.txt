@@ -9,3 +9,5 @@ matplotlib
 numpy
 pydicom-seg
 nii2dcm
+click
+joblib

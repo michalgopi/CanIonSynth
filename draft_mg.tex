@@ -1,0 +1,383 @@
+%%
+%% Copyright 2007, 2008, 2009 Elsevier Ltd
+%%
+%% This file is part of the 'Elsarticle Bundle'.
+%% ---------------------------------------------
+%%
+%% It may be distributed under the conditions of the LaTeX Project Public
+%% License, either version 1.2 of this license or (at your option) any
+%% later version.  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%% and version 1.2 or later is part of all distributions of LaTeX
+%% version 1999/12/01 or later.
+%%
+%% The list of all files belonging to the 'Elsarticle Bundle' is
+%% given in the file `manifest.txt'.
+%%
+
+%% Template article for Elsevier's document class `elsarticle'
+%% with numbered style bibliographic references
+%% SP 2008/03/01
+
+\documentclass[preprint,12pt, a4paper]{elsarticle}
+
+%% Use the option review to obtain double line spacing
+%% \documentclass[authoryear,preprint,review,12pt]{elsarticle}
+
+%% For including figures, graphicx.sty has been loaded in
+%% elsarticle.cls. If you prefer to use the old commands
+%% please give \usepackage{epsfig}
+
+%% The amssymb package provides various useful mathematical symbols
+\usepackage{amssymb}
+\usepackage{hyperref}
+\setlength{\parindent}{0pt}
+%% The amsthm package provides extended theorem environments
+%% \usepackage{amsthm}
+
+%% The lineno packages adds line numbers. Start line numbering with
+%% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
+%% for the whole article with \linenumbers.
+%\usepackage{lineno}
+
+\journal{SoftwareX}
+
+\begin{document}
+\renewcommand{\labelenumii}{\arabic{enumi}.\arabic{enumii}}
+
+\begin{frontmatter}
+
+%% Title, authors and addresses
+
+%% use the tnoteref command within \title for footnotes;
+%% use the tnotetext command for theassociated footnote;
+%% use the fnref command within \author or \address for footnotes;
+%% use the fntext command for theassociated footnote;
+%% use the corref command within \author for corresponding author footnotes;
+%% use the cortext command for theassociated footnote;
+%% use the ead command for the email address,
+%% and the form \ead[url] for the home page:
+%% \title{Title\tnoteref{label1}}
+%% \tnotetext[label1]{}
+%% \author{Name\corref{cor1}\fnref{label2}}
+%% \ead{email address}
+%% \ead[url]{home page}
+%% \fntext[label2]{}
+%% \cortext[cor1]{}
+%% \address{Address\fnref{label3}}
+%% \fntext[label3]{}
+
+\title{CanIon - Synth: Synthetic CT Generator for Aerosol Cans and Ionization Chambers}
+%% use optional labels to link authors explicitly to addresses:
+%% \author[label1,label2]{}
+%% \address[label1]{}
+%% \address[label2]{}
+
+\author[label1]{A. Author1}
+\author[label2]{A. Author2}
+\address[label1]{Author1's affiliation, address, email}
+\address[label2]{Author2's affiliation, address, email}
+
+\begin{abstract}
+%% Text of abstract
+% \textit{Text of the abstract here - 100 words.}
+% 96 słów
+We present open source software for the generation of synthetic CT volumes of different resolutions focusing on two object classes: aerosol cans and ionisation chambers. Our software, based on real objects datasets, allows for generation of 3D CT volumes, with the option to include the artefacts image reconstruction based on Radon Transform. Together with the synthetic CT volumes the software generates corresponding 2D X-Ray images and masks of object elements. The resulting dataset can be used for the training of deep learning models for segmentation, super resolution, or generation of 3D volumes from corresponding 2D volumes.
+\end{abstract}
+
+\begin{keyword}
+computed tomography \sep synthetic phantom \sep aerosol can \sep ionization chamber \sep volumetric metrology
+\end{keyword}
+
+\end{frontmatter}
+
+%\linenumbers
+
+\section*{Metadata}
+
+% Required code metadata table
+\begin{table}[!h]
+\begin{tabular}{|l|p{6.5cm}|p{6.5cm}|}
+\hline
+\textbf{Nr.} & \textbf{Code metadata description} & \textbf{Metadata} \\
+\hline
+C1 & Current code version & v0.1.2 \\
+\hline
+C2 & Permanent link to code/repository used for this code version & \url{https://github.com/michalgopi/CanIonSynth} (release archive URL for v0.1.2 to be inserted before submission) \\
+\hline
+C3  & Permanent link to Reproducible Capsule & Not currently provided. Reproducibility is supported through the public repository, locked dependency files, JSON fixtures, container definition, and automated CI workflows. \\
+\hline
+C4 & Legal Code License & MIT License \\
+\hline
+C5 & Code versioning system used & git \\
+\hline
+C6 & Software code languages, tools, and services used & Julia, Python, NIfTI, DICOM, DICOM-SEG, GitHub Actions, Documenter, Docker \\
+\hline
+C7 & Compilation requirements, operating environments \& dependencies & Julia 1.11; Python 3.10; Julia packages including PyCall, ImagePhantoms, ImageGeoms, Sinograms, ImageFiltering; Python packages including SimpleITK, NumPy, scikit-image, ADRT, click, joblib, pydicom, nibabel, matplotlib; optional \texttt{nii2dcm} and \texttt{gcloud} for selected export workflows \\
+\hline
+C8 & If available Link to developer documentation/manual & \url{https://github.com/michalgopi/CanIonSynth} and repository documentation under \texttt{docs/} \\
+\hline
+C9 & Support email for questions & jakub.mitura14@gmail.com \\
+\hline
+\end{tabular}
+\caption{Code metadata (mandatory)}
+\label{codeMetadata}
+\end{table}
+
+
+% % Optional metadata table
+% \begin{table}[!h]
+% \begin{tabular}{|l|p{6.5cm}|p{6.5cm}|}
+% \hline
+% \textbf{Nr.} & \textbf{(Executable) software metadata description} & \textbf{} \\
+% \hline
+% S1 & Current software version & 0.1.2 \\
+% \hline
+% S2 & Permanent link to executables of this version & GitHub release URL for v0.1.2 to be inserted before submission \\
+% \hline
+% S3  & Permanent link to Reproducible Capsule & Not currently provided \\
+% \hline
+% S4 & Legal Software License & MIT License \\
+% \hline
+% S5 & Computing platforms/Operating Systems & Linux, Microsoft Windows, macOS; containerized execution via Docker and VS Code Dev Containers \\
+% \hline
+% S6 & Installation requirements \& dependencies & Python 3.10, Julia 1.11, \texttt{requirements.txt}, \texttt{Project.toml}, \texttt{Manifest.toml}; optional \texttt{nii2dcm} and \texttt{gcloud} for selected export paths \\
+% \hline
+% S7 & If available, link to user manual & \url{https://github.com/michalgopi/CanIonSynth/blob/main/README.md} \\
+% \hline
+% S8 & Support email for questions & jakub.mitura14@gmail.com \\
+% \hline
+% \end{tabular}
+% \caption{Software metadata (optional)}
+% \label{executabelMetadata}
+% \end{table}
+
+\section{Motivation and significance}
+% \textit{In this section, we want you to introduce the scientific background and the motivation for developing the software.}
+Segmentation and volumetric analysis of industrial computed tomography data is still a challenging task while the need for automatic approaches increases \cite{bellens_machine_2024}. High precision volume calculation of ionizing chambers is crucial for radiological safety. Accurate volume measurement of fluids in industrial CT is important from a consumer rights perspective. In recent years there has been a steady drive towards AI-based approaches to volumetric analysis. While those approaches prove to be promising, they require extensive, often labelled, datasets. Data collection is both time and resource consuming. Another important scientific challenge in the field of CT image analysis is the problem of image upsampling to higher resolutions. This requires datasets of objects imaged at different resolutions. This is especially important with NN-based approaches which are often designed for specific input image dimensions, requiring image reslicing, which comes at cost of interpolation artefacts. Therefore, there is a need for the development of accurate image reslicing methods.
+
+To this end we present software for the generation of synthetic CT images of two classes of objects, namely: ionization chambers, and aerosol cans. The software was developed in collaboration with team collecting real CT data, in order to ensure validity of generated images. The presented software allows for generation of objects at user defined resolution. Simultaneous generation of CT volumes, X-Ray images, and corresponding masks, makes the software useful for the training of wide range of algorithms. The two classes of objects mean that the generated dataset can be used both in consumer goods field as well as medical / radiological safety field.
+
+
+\section{Software description}
+% \textit{Describe the software. Provide enough detail to help the reader understand its impact. }
+
+\subsection{Software architecture}
+% Figure based on \url{https://github.com/michalgopi/CanIonSynth/blob/main/docs/system_architecture.md} with description.
+CanIonSynth is implemented across four coupled layers: a Julia entry-point layer, a parametric geometry layer, a shared image input/output layer, and a Python auxiliary layer. The full pipeline is containerised via Docker, locked to pinned Julia and Python environments, and validated by an automated continuous-integration suite.
+
+\paragraph{Entry-point layer.}
+Two Julia scripts, \mbox{\texttt{main\_create\_phantom\_can.jl}} and
+\mbox{\texttt{main\_create\_phantom\_ionic\_chamber.jl}}, serve as the sole user-facing entry points. Both accept a command-line interface of up to ten positional arguments: the voxel grid dimensions, Boolean flags for Radon reconstruction and Gaussian smoothing, a run identifier string (which also seeds the pseudorandom number generator via \mbox{\texttt{abs(hash(uuid))}}), an optional additive noise magnitude, an optional path to a JSON parameter file, and two optional Radon tuning parameters---sinogram noise level (\mbox{\texttt{radon\_noise\_level}}, scale 0--1, default 0) and projection angle count (\mbox{\texttt{radon\_n\_theta}}, default 10). Both Radon tuning arguments may alternatively be specified as JSON keys, allowing all generation settings to be captured in a single reproducible fixture. When a JSON file is supplied the run is fully deterministic and reproducible; when it is omitted, parameters are drawn from a seeded \mbox{\texttt{MersenneTwister}} within physically motivated ranges. The entry-point scripts orchestrate argument parsing, field-of-view and spacing computation, geometry construction, optional post-processing, and export.
+
+\paragraph{Parametric geometry layer.}
+Phantom geometry is constructed in \mbox{\texttt{get\_geometry\_main.jl}} and
+\mbox{\texttt{get\_rounded\_bottom\_b.jl}} using a locally vendored, extended fork of the \mbox{\texttt{ImagePhantoms.jl}} library. The fork adds six custom primitive types: three axis-aligned half-ellipsoids (\mbox{\texttt{HalfSphere\_x/y/z}}), a variant half-ellipsoid for X-ray transforms (\mbox{\texttt{HalfSphere\_z\_b}}), a cylinder with configurable sinogram irregularity (\mbox{\texttt{Cylinder\_irr}}), and a cylinder with its upper hemisphere removed (\mbox{\texttt{Cylinder\_min\_half\_elipsoid}}). Object grids are defined with \mbox{\texttt{ImageGeoms.jl}} and rasterised by evaluating \mbox{\texttt{phantom(axes(ig)\{...\}, [obj])}} to produce 32-bit floating-point Boolean volumes. The final density map is assembled by iterating over a named object list and applying layer-by-layer Boolean union, intersection, and complement operations before multiplying each region by its assigned Hounsfield-unit-equivalent density. For the aerosol can, the rounded-bottom variant is constructed entirely from discretised toroids: each toroid is approximated by placing ellipsoidal spheres along a circular orbit at angular steps commensurate with the minimum voxel spacing, using Julia thread-level parallelism (\mbox{\texttt{Threads.@threads}}). Analytical volume formulae (cylinder, ellipsoid, elliptical cylinder, torus) are implemented in \mbox{\texttt{volume\_integration.jl}} and compared against voxel-count estimates at the end of every run as a built-in quantitative validity check.
+
+\paragraph{Image input/output layer.}
+All output images carry physical spacing metadata (converted from centimetres to millimetres), identity direction cosines, and zero origin, and are written as compressed NIfTI-1 files (\mbox{\texttt{.nii.gz}}) via SimpleITK. NIfTI volumes are converted to DICOM slice series by invoking \mbox{\texttt{nii2dcm}} as an external subprocess; binary masks are converted to DICOM-SEG objects by the Python helper \mbox{\texttt{nifti\_to\_dicom\_seg.py}} using \mbox{\texttt{pydicom-seg}}. Parameter dictionaries, including both numerical and analytical volume estimates, are serialised to JSON alongside each output. All output files are collected into a compressed ZIP archive.
+
+\paragraph{Python auxiliary layer.}
+The script \mbox{\texttt{radon\_iradon\_3d.py}} is invoked as a subprocess when the Radon flag is enabled. It implements a two-stage, fully parallel Radon and inverse-Radon pipeline using \mbox{\texttt{joblib}}. In stage one, the forward Radon transform is applied slice-by-slice along the azimuthal axis; in stage two, it is applied along the polar axis to form the sinogram. Optional Gaussian noise is then added to the sinogram at the level controlled by \mbox{\texttt{radon\_noise\_level}}. The two inverse stages reconstruct the volume from the (possibly noisy) sinogram. The number of projection angles is set by \mbox{\texttt{radon\_n\_theta}}. After reconstruction the output is cropped and padded back to the original grid dimensions and written to \mbox{\texttt{after\_radon.nii.gz}}; the Julia caller then creates \mbox{\texttt{after\_radon\_plus\_before.nii.gz}} as the voxel-wise average of the original and reconstructed volumes. Additional Python scripts provide slice visualisation and batch test generation utilities.
+
+\paragraph{Reproducibility and validation infrastructure.}
+The repository includes locked Julia (\mbox{\texttt{Project.toml}}, \mbox{\texttt{Manifest.toml}}) and Python (\mbox{\texttt{requirements.txt}}) environments, a \mbox{\texttt{Dockerfile}} (Python 3.10 / Julia 1.11), and a VS Code Dev Container definition. A GitHub Actions CI workflow instantiates both environments, generates can and ionic-chamber phantoms at $32 \times 32 \times 32$ voxels under several parameter combinations (random defaults, JSON-driven, with Radon, with smoothing), and verifies the presence of all expected output artefacts. A separate workflow builds and deploys the \mbox{\texttt{Documenter.jl}} documentation site to GitHub Pages on every push to the main branch.
+
+\begin{figure}[!h]
+\centering
+\fbox{\parbox[c][5.0cm][c]{0.92\linewidth}{\centering Placeholder for a workflow overview figure.\\[4pt]
+The final figure should show the CanIonSynth pipeline from command-line or JSON input, through Julia geometry generation and voxelization, to mask creation, optional Radon/reconstruction or DICOM export, and final NIfTI/DICOM/ZIP outputs with automated validation.}}
+\caption{Placeholder for the CanIonSynth workflow diagram. The final artwork should summarize the main software components and data flow described in Section 2.2.}
+\label{fig:workflow}
+\end{figure}
+
+
+\subsection{Software functionalities}
+The software allows for generation of two classes of objects:
+\begin{enumerate}
+    \item{Aerosol can:}
+    \begin{enumerate}
+        \item{Steel can,}
+        \item{Aluminium can,}
+    \end{enumerate}
+    \item{Ionization chamber:}
+    \begin{enumerate}
+        \item{Spherical,}
+        \item{Lollipop,}
+        \item{Cylindrical with curved top,}
+        \item{Cylindrical with flat top.}
+    \end{enumerate}
+\end{enumerate}
+For each object class and subclass, a set of parameters is defined with specified ranges to ensure the best correspondence with physical object parameters. The parameters are fed to the generating function as JSON file. The results consist of synthetic 3D CT, elements masks, in DICOM and NIfTI formats, and 2D X-Ray images.
+\subsection{Object definitions}
+\subsubsection{Aerosol can}
+Steel can object consists of cylinder with double ellipsoid bottom, ellipsoid top, tube, tube interior and the dispenser. The geometrical parameters of those shapes are defined by the input JSON file according to the variables in the data sheet \ref{}. In the case of aluminium can, the bottom is rounded and the can walls have thicker and less dense walls. To ensure realistic shape of the can bottom it is shape is a combination of spheres and toruses with different radii as defined in the data sheet. The fluid in the can is simulated by the fluid height parameter. To ensure realistic fluid presentation, the meniscus is constructed by removing a sphere from the fluid cylinder. Fig. \ref{fig:example_can} shows example of synthetic steel can with fluid.
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/can_12x2.png}
+\caption{\label{fig:example_can}Example of a aerosol can phantom -- 3 planes.}
+\end{figure}
+
+\subsubsection{Ionization chambers}
+In the input JSON, the type of the ionizing chamber should be specified. All shapes share similar base structure that consists of copper electrode, internal insulator, internal aluminium layer, external insulator, external aluminium layer, lead layer.  Different top shapes are available.
+\subsubsection*{Spherical}
+The chamber shape is defined by specifying the internal and external radius. Fig. \ref{fig:example_ball_like} show example spherical ionisation chamber geometry.
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/chamber_ball_like_12x3.png}
+\caption{\label{fig:example_ball_like}Example of a ball-like ionization chamber phantom - 3 planes.}
+\end{figure}
+
+\subsubsection*{Lollipop}
+The lollipop chamber top is defined by the height and radius of the external cylinder, as well as the thickness and the radius of the internal graphite electrode and the width and length of its connection to the chamber bottom. Fig. \ref{fig:example_lollipop_like} show example lollipop ionisation chamber geometry.
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/chamber_lollipop_like_12x3.png}
+\caption{\label{fig:example_lollipop_like}Example of a lollipop-like ionization chamber phantom - 3 planes.}
+\end{figure}
+
+\subsubsection*{Cylindrical with flat and curved top}
+Cylindrical chamber is defined by the internal and external cylinder radius It has either a flat top, or rounded top defined by the curvature radius. The internal lead electrode is defined by its radius.
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/chamber_rounded_top_12x3.png}
+\caption{\label{fig:example_rounded_top}Example of a rounded top ionization chamber phantom - 3 planes.}
+\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/chamber_flat_top_12x3.png}
+\caption{\label{fig:example_flat_top}Example of a flat top ionization chamber phantom - 3 planes.}
+\end{figure}
+
+\subsubsection{Additional functionalities}
+The main input JSON file allows for calling optional functionalities during phantom generation. This includes two approaches to adding noise to the image. Gaussian noise is a faster option controlled by the \verb|additive_noise| parameter. For a more realistic but computationally slower approach, Radon transform can be added where the 3D phantom is transformed into sinogram space and back, simulating CT-like reconstruction errors. The Radon stage is governed by two additional parameters: \verb|radon_n_theta| sets the number of projection angles (default 10; higher values increase fidelity at the cost of runtime), and \verb|radon_noise_level| adds Gaussian noise to the sinogram on a 0--1 scale before reconstruction (default 0, i.e.\ no noise). Both parameters can be supplied as positional command-line arguments (positions 9 and 10) or as JSON keys in the configuration file.
+
+To complement noise simulation options, the \verb|add_smooth| parameter enables Gaussian image smoothing applied to the phantom volume prior to export.
+% \textit{Present the major functionalities of the software.}
+% \subsection{Sample code snippets analysis (optional)}
+
+
+\section{Illustrative examples}
+Here we present example synthetic images generated with CanIon-Synth. Fig. \ref{fig:2d_real_synth_comparison} shows synthetic 2D projection (at $45^\circ$) of the can object (left) together with a X-ray scan of a can from the real objects dataset that was underlying the parameter choices for the software. As we can see the the synthetic image maintains important analysis constraining characteristics such as edge blurring. The parameter JSON for that object was:
+\begin{verbatim}
+    {"add_pipe":true,
+    "pipe_cross_section":[0.35625,0.35625],
+    "menisc_cut_total_height":2.375,
+    "dispenser_cross_section":[0.59375,0.23750000000000002],
+    "dispenser_len":1.9000000000000001,
+    "menisc_cut_height":0.76,
+    "rounded_bottom":false,
+    "angle":0.0,
+    "vol":{},
+    "rel_size_bottom_curvature":0.45,
+    "tube_ball_fraction":0.75,
+    "cylinder_wall_thickness":0.02,
+    "pipe_density":0.35,
+    "len_cut":3.8000000000000003,
+    "x_cut_angle":0.0,
+    "dual_phase_percentage":0.6,
+    "center_cylinder":[0.0,0.0,0.0],
+    "density_inside_b":0.1275,
+    "double_bottom_curvature":true,
+    "fluid_volume_numerical":90.04493700000002,
+    "dispenser_density":0.15,
+    "rel_dist":0.45,
+    "curvature":0.47500000000000003,
+    "pipe_len":7.9258500000000005,
+    "density_inside":0.15,
+    "cylinder_bottom_curvature":0.665,
+    "menisc_radius_mult":1.5,
+    "fluid_volume_analytical":88.71340049050602,
+    "spacing":[0.01,0.01,0.01],
+    "cylinder_bottom_curvature_b":1.197,
+    "bigger_cyl_size":[2.375,2.375,9.5],
+    "uuid":"141830",
+    "torus_height_factor":0.12,
+    "cylinder_top_curvature":0.9500000000000001,
+    "seed":8618552430084535071,"
+    y_cut_angle":0.0}
+\end{verbatim}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.25\linewidth]{can_2d.png}
+\includegraphics[width=0.25\linewidth]{can_2d_real_example.png}
+\caption{\label{fig:2d_real_synth_comparison}Example 2D projection of a synthetic aerosol can and a real X-ray scan of a aerosol can.}
+\end{figure}
+
+Fig. \ref{fig: radon_example} shows the result of applying Radon transform to the image. The obtained image has important characteristics related to Radon reconstrucion.
+
+\begin{figure}[!h]
+\centering
+\fbox{\parbox[c][5.0cm][c]{0.92\linewidth}{\centering Placeholder for a Radon before and after example.}}
+\caption{Placeholder for a Radon before and after example.}
+\label{fig: radon_example}
+\end{figure}
+
+% \textit{Provide at least one illustrative example to demonstrate the major functions of your software/code.}
+
+\section{Impact}
+% \textit{This is the main section of the article and reviewers will weight it appropriately.}
+The main impact of the software is the low cost generation of synthetic, annotated, training datasets for the development of NN-based algorithms. We have used the synthetic dataset generated with CanIon-Synth for the purpose of industrial metrology project MetroTK \ref{} to train nn-UNet in order to segment fluid in the cans and interior of ionizing chambers. The trained model was qualitatively tested on real dataset to check if it can reliably segment fluid from the real data.
+Because geometry, material values, filling states, and selected artifacts can be controlled explicitly, the software can be used to study how segmentation and reconstruction methods respond to changes in object morphology, voxel spacing, fluid-interface shape, and chamber geometry. This is directly relevant for synthetic-to-real transfer studies, reconstruction benchmarking, and volumetric uncertainty analysis.
+
+\begin{figure}[!h]
+\centering
+\fbox{\parbox[c][5.0cm][c]{0.92\linewidth}{\centering Placeholder for nnunet example segmentation.}}
+\caption{Placeholder for nnunet segmentation.}
+\label{fig: segmentation_example}
+\end{figure}
+
+The software improves the study of existing CT-analysis questions in three main ways. First, it supplies voxel-level masks and parameter logs alongside each generated volume, which substantially lowers the cost of building benchmark datasets. Second, it supports repeatable parameter sweeps through JSON fixtures and deterministic test settings. Third, it embeds validation into the generation workflow itself through analytical-versus-numerical volume checks, reducing the risk that a visually plausible phantom is nevertheless quantitatively inconsistent.
+
+In practical day-to-day use, the software changes the workflow of method developers by reducing the amount of bespoke scripting needed to assemble test phantoms, masks, and metadata. A single repository provides geometry generation, documentation, regression tests, and optional export utilities. This makes the tool useful not only for final experiments but also for continuous integration, example generation, and rapid debugging of downstream CT-analysis code.
+
+At the time of writing, CanIonSynth is a newly prepared public release, so long-term adoption metrics and commercial uptake are not yet meaningful. The immediate impact is therefore methodological and infrastructural rather than bibliometric: the software provides an inspectable, reusable, and domain-specific synthetic-data generator that can support future academic benchmarking studies and engineering prototyping.
+
+
+\section{Conclusions}
+% \textit{Conclusions here.}
+Developement of NN-based algorithms increases the demand for data, especially annotated datasets which are particularly labour intensive as they require manual delineation. Our software, by being developed based on real objects dataset, provides a reliable tool for synthetic annotaded data delineation. While the biggest limitation of the current approach is the need for increased dataset generalisation, the parameter - based data generation provides a usefull starting point for expanding object classes definitions and increasing the variability of synthetic data to better model the variability of existing CT scanning setups.
+CanIonSynth provides an open, reproducible software workflow for generating synthetic CT volumes of aerosol cans and ionization chambers with aligned masks, optional reconstruction outputs, and quantitative volume checks. Its main contribution is not a generic phantom framework, but a domain-targeted bridge between parametric geometry definition, annotation generation, and reproducible CT-method evaluation. The current release is particularly suited to segmentation benchmarking, regression testing, and the creation of small-to-medium sized synthetic datasets for method development. Future work will focus on broader object variability, stronger real-to-synthetic correspondence studies, and archival release publication with a version-specific DOI.
+
+\section*{Acknowledgements}
+\textit{Optional. You can use this section to acknowledge colleagues who don’t qualify as a co-author but helped you in some way. }
+
+
+%% The Appendices part is started with the command \appendix;
+%% appendix sections are then done as normal sections
+%% \appendix
+
+%% \section{}
+%% \label{}
+
+%% References:
+%% If you have bibdatabase file and want bibtex to generate the
+%% bibitems, please use
+%%
+%%  \bibliographystyle{elsarticle-num}
+%%  \bibliography{<your bibdatabase>}
+
+%% else use the following coding to input the bibitems directly in the
+%% TeX file.
+
+\begin{thebibliography}{00}
+
+%% \bibitem{label}
+%% Text of bibliographic item
+
+% \bibitem{} Use this style of ordering. References in-text should also use a similar style.
+\bibitem{bellens_machine_2024}Bellens, S., Guerrero, P., Vandewalle, P. \& Dewulf, W. Machine learning in industrial X-ray computed tomography – a review. {\em CIRP Journal Of Manufacturing Science And Technology}. \textbf{51} pp. 324-341 (2024,7,1), https://www.sciencedirect.com/science/article/pii/S1755581724000634
+
+
+\end{thebibliography}
+
+\end{document}
+\endinput
+%%
+%% End of file `SoftwareX_article_template.tex'.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

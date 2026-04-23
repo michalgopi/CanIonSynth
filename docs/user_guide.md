@@ -96,7 +96,7 @@ julia --project=docs docs/make.jl
 Both generators accept the same command-line structure:
 
 ```text
-julia --project=. <script> <dims> <add_radon> <variable_spacing> <uuid> <randomize> <add_smooth> <additive_noise> [json_path]
+julia --project=. <script> <dims> <add_radon> <variable_spacing> <uuid> <randomize> <add_smooth> <additive_noise> [json_path] [radon_noise_level] [radon_n_theta]
 ```
 
 ### Argument Reference
@@ -111,6 +111,10 @@ julia --project=. <script> <dims> <add_radon> <variable_spacing> <uuid> <randomi
 | 6 | `add_smooth` | Applies Gaussian smoothing to the final phantom volume. |
 | 7 | `additive_noise` | Adds Gaussian noise, for example `0.0` or `0.1`. |
 | 8 | `json_path` | Optional JSON config path for reproducible parameter sets. |
+| 9 | `radon_noise_level` | Optional. Gaussian noise added to the sinogram before reconstruction, on a 0–1 scale (default `0.0`). Only used when `add_radon=true`. |
+| 10 | `radon_n_theta` | Optional. Number of projection angles for the Radon transform (default `10`). Only used when `add_radon=true`. |
+
+Arguments 9 and 10 can also be set as JSON keys (`"radon_noise_level"` and `"radon_n_theta"`) in the config file supplied at position 8; the JSON values take precedence over the positional defaults.
 
 For local generation, keep `SKIP_WANDB=true` and `SKIP_UPLOAD=true` set unless you have configured those external services on purpose.
 
@@ -128,10 +132,16 @@ Generate a reproducible can phantom from the checked-in example config:
 julia --project=. in_docker_organized/main_create_phantom_can.jl 64x64x64 false false run-can-json false false 0.0 tests/configs/can_phantom.json
 ```
 
-Generate a can phantom with the Radon or inverse-Radon stage enabled:
+Generate a can phantom with the Radon or inverse-Radon stage enabled (default angle count and no sinogram noise):
 
 ```bash
 julia --project=. in_docker_organized/main_create_phantom_can.jl 64x64x64 true false run-can-radon false false 0.0
+```
+
+Generate a can phantom with Radon enabled, 30 projection angles, and moderate sinogram noise:
+
+```bash
+julia --project=. in_docker_organized/main_create_phantom_can.jl 64x64x64 true false run-can-radon false false 0.0 " " 0.05 30
 ```
 
 ## Running An Ionic Chamber Phantom
@@ -163,6 +173,17 @@ julia --project=. in_docker_organized/main_create_phantom_ionic_chamber.jl 64x64
 ## JSON Configuration
 
 Use the JSON fixtures in `tests/configs/` whenever you need a documented, reproducible setup.
+
+To control the Radon stage from JSON, add the following keys to your config file:
+
+```json
+{
+  "radon_noise_level": 0.05,
+  "radon_n_theta": 30
+}
+```
+
+These keys are read after the command-line arguments, so they override the CLI defaults (but not explicit CLI values at positions 9 and 10).
 
 - `tests/configs/can_phantom.json`: rounded can with multiple internal features
 - `tests/configs/ionic_chamber.json`: fully specified square-top chamber

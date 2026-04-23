@@ -74,7 +74,12 @@ The ionic chamber workflow produces multi-layer, multi-material chamber phantoms
 
 ### Radon And Reconstruction
 
-When `add_radon=true`, the Julia scripts call `in_docker_organized/get_approximate_radon_inverse.py` through the same Python interpreter used by `PyCall`.
+When `add_radon=true`, the Julia scripts call `in_docker_organized/radon_iradon_3d.py` through the same Python interpreter used by `PyCall`. The script applies a two-stage parallel forward and inverse Radon transform (using `joblib` for parallelism and `scikit-image` for the per-slice transforms). Two tuning parameters control the reconstruction:
+
+- `radon_n_theta` — number of projection angles (CLI position 9 or JSON key, default `10`)
+- `radon_noise_level` — Gaussian noise added to the sinogram on a 0–1 scale (CLI position 10 or JSON key, default `0.0`)
+
+After the Python script writes `after_radon.nii.gz`, the Julia caller creates `after_radon_plus_before.nii.gz` as the voxel-wise average of the original phantom and the reconstructed volume.
 
 ### DICOM Output
 
