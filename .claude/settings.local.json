@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//mnt/d/Coding/Repos/**)",
+      "Bash(.venv/Scripts/pip install *)",
+      "Bash(.venv/Scripts/python in_docker_organized/radon_iradon_3d.py --help)",
+      "Bash(julia --project=. tests/run_tests.jl)",
+      "Bash(julia --project=docs docs/make.jl)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git reset *)"
+    ]
+  }
+}
