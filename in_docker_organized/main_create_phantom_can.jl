@@ -23,6 +23,9 @@ args_json_path = length(ARGS) >= 8 ? ARGS[8] : " "
 radon_noise_level = length(ARGS) >= 9 ? parse(Float64, ARGS[9]) : 0.0
 radon_n_theta = length(ARGS) >= 10 ? parse(Int, ARGS[10]) : 10
 
+using Dates
+tlog(args...) = println("[$(Dates.format(now(), "yyyy-mm-dd HH:MM:SS"))] [INFO] ", args...)
+
 tlog("dims $dims add_radon $add_radon add_smooth $add_smooth additive_noise $additive_noise")
 
 using Pkg

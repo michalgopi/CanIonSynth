@@ -1,6 +1,6 @@
 
 if !@isdefined(tlog)
-    tlog(args...) = tlog("[$(Dates.format(now(), "yyyy-mm-dd HH:MM:SS"))] [INFO] ", args...)
+    tlog(args...) = println("[$(Dates.format(now(), "yyyy-mm-dd HH:MM:SS"))] [INFO] ", args...)
 end
 
 # python implementation taken from https://stackoverflow.com/questions/56171643/simpleitk-rotation-of-volumetric-data-e-g-mri
