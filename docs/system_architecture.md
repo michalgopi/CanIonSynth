@@ -11,7 +11,7 @@ The user-facing generation layer lives in:
 - `in_docker_organized/main_create_phantom_can.jl`
 - `in_docker_organized/main_create_phantom_ionic_chamber.jl`
 
-These scripts parse arguments, create or load parameter sets, generate voxelized phantoms, save outputs, and optionally trigger downstream processing such as Radon reconstruction and DICOM export.
+These scripts parse arguments, create or load parameter sets, generate voxelized phantoms, save outputs, and optionally trigger downstream processing such as Radon reconstruction and DICOM export. All console output uses a shared `tlog` helper that prefixes every message with a `[YYYY-MM-DD HH:MM:SS] [INFO]` timestamp.
 
 ### 2. Geometry Construction Layer
 
@@ -29,7 +29,7 @@ This layer is responsible for:
 
 ### 3. Image IO And Interop Layer
 
-`in_docker_organized/geometry_utils.jl` contains the image manipulation and export utilities used by both generators.
+`in_docker_organized/geometry_utils.jl` contains the image manipulation and export utilities used by both generators. It also defines the `tlog` helper function (guarded by `@isdefined`) that all Julia files use for timestamped output.
 
 Key responsibilities include:
 
@@ -40,10 +40,11 @@ Key responsibilities include:
 
 ### 4. Python Helper Layer
 
-The Python scripts are focused on tasks that are easier to express with Python imaging libraries.
+The Python scripts are focused on tasks that are easier to express with Python imaging libraries. All Python helpers use the standard `logging` module configured with the `[YYYY-MM-DD HH:MM:SS] [INFO]` format.
 
 - `in_docker_organized/radon_iradon_3d.py`: two-stage parallel Radon and inverse-Radon reconstruction helper; accepts `--n-theta` (projection angle count, default 10) and `--noise-level` (sinogram noise scale 0–1, default 0); invoked by the Julia entry points when `add_radon=true`
 - `in_docker_organized/nifti_to_dicom_seg.py`: DICOM-SEG conversion helper
+- `in_docker_organized/coordinate_phantom_create.py`: batch orchestration helper; reads a local JSON config file (path set by `CONFIG_JSON_PATH` env var, defaulting to `control_json_can_128.json`) and launches the Julia generators
 - `scripts/visualize_nifti.py`: visualization helper for manual inspection
 - `scripts/generate_all_manual_tests.py`: manual test batch generator
 
@@ -71,16 +72,12 @@ The normal local execution path is:
 3. Julia geometry helpers build the phantom and masks
 4. the generator saves NIfTI outputs and parameter logs
 5. optional Python helpers generate Radon-derived outputs or DICOM-SEG artifacts
-6. the script zips the result directory and either keeps it locally or uploads it
+6. the script zips the result directory and prints the local path
 
 ## External Integrations
 
-Several integrations are optional rather than required for local use.
+The only optional external tool is `nii2dcm` for DICOM slice export. DICOM export is skipped gracefully when `nii2dcm` is unavailable.
 
-- Weights and Biases logging can be disabled with `SKIP_WANDB=true`.
-- Google Cloud Storage upload can be disabled with `SKIP_UPLOAD=true`.
-- DICOM slice export is skipped when `nii2dcm` is unavailable.
+## Coordinator Script
 
-## Coordinator Script Status
-
-`in_docker_organized/coordinate_phantom_create.py` is still present, but it is tightly coupled to specific Google Cloud Storage locations and temporary filesystem paths. It is better viewed as a project-specific automation helper than as the primary documented interface for local users.
+`in_docker_organized/coordinate_phantom_create.py` reads its configuration from a local JSON file rather than from any cloud storage. The config file path defaults to `in_docker_organized/control_json_can_128.json` and can be overridden with the `CONFIG_JSON_PATH` environment variable. If `json_folders_path` in the config points to a local directory, the script lists JSON files from that directory and runs one generation job per file.

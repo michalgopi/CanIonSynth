@@ -12,6 +12,7 @@ CanIonSynth creates synthetic industrial CT phantoms, segmentation masks, and op
 - Optionally creates DICOM and DICOM-SEG outputs when the required external tooling is installed.
 - Optionally runs a projection and reconstruction pass for reconstruction-oriented experiments.
 - Supports reproducible runs from JSON configuration files and a validated automated test suite.
+- All CLI output is timestamped in `[YYYY-MM-DD HH:MM:SS] [INFO]` format.
 
 ## Recommended Local Setup
 
@@ -41,13 +42,11 @@ julia --project=. tests/setup_env.jl
 
 ## Validate The Installation
 
-Disable optional cloud logging and uploads for local work, then run the test suite.
+Run the test suite with deterministic UUIDs:
 
 ### PowerShell
 
 ```powershell
-$env:SKIP_WANDB = "true"
-$env:SKIP_UPLOAD = "true"
 $env:FIXED_UUIDS = "1"
 julia --project=. tests/run_tests.jl
 ```
@@ -55,8 +54,6 @@ julia --project=. tests/run_tests.jl
 ### Bash
 
 ```bash
-export SKIP_WANDB=true
-export SKIP_UPLOAD=true
 export FIXED_UUIDS=1
 julia --project=. tests/run_tests.jl
 ```
@@ -70,8 +67,6 @@ julia --project=docs docs/make.jl
 ## Generate Data
 
 Run the main generators from the repository root.
-
-For local runs, keep `SKIP_WANDB=true` and `SKIP_UPLOAD=true` set unless you have explicitly configured Weights and Biases and Google Cloud Storage uploads in your environment.
 
 ### Can Phantom
 
@@ -97,7 +92,7 @@ julia --project=. in_docker_organized/main_create_phantom_ionic_chamber.jl 64x64
 julia --project=. in_docker_organized/main_create_phantom_ionic_chamber.jl 64x64x64 false false run-ionic-json false false 0.0 tests/configs/ionic_chamber_square.json
 ```
 
-When `SKIP_UPLOAD=true`, the scripts keep the generated files locally and print the output directory and zip archive path.
+The generators always keep output locally and print the output directory and zip archive path.
 
 ## Reproducibility
 
@@ -106,13 +101,10 @@ When `SKIP_UPLOAD=true`, the scripts keep the generated files locally and print 
 - JSON fixtures in `tests/configs/` provide reproducible reference parameter sets.
 - `FIXED_UUIDS=1` makes test output naming deterministic.
 - `SAVE_OUTPUTS_TO=<path>` preserves generated test artifacts before cleanup.
-- `SKIP_WANDB=true` and `SKIP_UPLOAD=true` disable external services during local runs and CI.
 
 ## Optional External Tools
 
 - `nii2dcm`: required only if you want DICOM slice export from generated NIfTI files.
-- `gcloud`: required only if you want to use the built-in Google Cloud Storage upload paths.
-- `wandb`: installed by default through `requirements.txt`, but can be disabled entirely with `SKIP_WANDB=true`.
 
 ## Container And Dev Container
 

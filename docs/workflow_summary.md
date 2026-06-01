@@ -11,7 +11,7 @@ Use these scripts directly from the repository root:
 - `in_docker_organized/main_create_phantom_can.jl`
 - `in_docker_organized/main_create_phantom_ionic_chamber.jl`
 
-The Python coordinator `in_docker_organized/coordinate_phantom_create.py` still exists, but it assumes specific Google Cloud Storage paths and is best treated as a project-specific automation helper rather than the primary local interface.
+The Python coordinator `in_docker_organized/coordinate_phantom_create.py` exists for batch use; it reads configuration from a local JSON file (see [System Architecture](system_architecture.md) for details).
 
 ## Can Phantom Workflow
 
@@ -32,7 +32,7 @@ The can workflow produces cylindrical container phantoms with internal fluids an
 5. Save the main volume and masks as NIfTI files.
 6. Optionally run the approximate Radon and inverse-Radon helper script.
 7. Optionally attempt DICOM and DICOM-SEG export.
-8. Zip the output directory and optionally upload it to Google Cloud Storage.
+8. Zip the output directory and print the local path.
 
 ### Typical Outputs
 
@@ -61,7 +61,7 @@ The ionic chamber workflow produces multi-layer, multi-material chamber phantoms
 5. Save the phantom and component masks as NIfTI files.
 6. Optionally run the approximate Radon and inverse-Radon helper script.
 7. Optionally create DICOM and DICOM-SEG outputs when the DICOM toolchain is available.
-8. Zip the output directory and optionally upload it to Google Cloud Storage.
+8. Zip the output directory and print the local path.
 
 ### Typical Outputs
 
@@ -90,20 +90,18 @@ The repository attempts DICOM export only when the required tooling is available
 
 ## Output Lifecycle
 
-During a local run with `SKIP_UPLOAD=true`:
+Generated files are always kept locally. After each run the generator prints:
 
-- a temporary output directory is created
-- the directory path is printed as `Output stored in: ...`
-- a zip archive is created next to the output
-- the files remain available for inspection
+```text
+[2026-06-01 08:41:22] [INFO] Output stored in: /tmp/jl_XXXXXX/<uuid>
+[2026-06-01 08:41:22] [INFO] Zip stored in: /tmp/jl_XXXXXX/<uuid>.zip
+```
 
-When uploads are enabled, the scripts upload the archive to hardcoded Google Cloud Storage locations and then delete the local outputs.
+Use the printed path to locate outputs for inspection or further processing.
 
 ## Reproducibility Controls
 
 - `tests/configs/` contains reproducible JSON fixtures.
-- `SKIP_WANDB=true` disables optional experiment tracking.
-- `SKIP_UPLOAD=true` keeps local outputs.
 - `FIXED_UUIDS=1` makes the test harness deterministic.
 - `SAVE_OUTPUTS_TO=<path>` preserves test outputs before cleanup.
 
