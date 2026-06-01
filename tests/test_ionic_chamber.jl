@@ -22,18 +22,10 @@ using Accessors
 using ImageFiltering
 using Random
 
-# Mock WandB
-struct MockWandB
-    init::Function
-    log::Function
-end
-const wandb = MockWandB((args...; kwargs...) -> nothing, (args...; kwargs...) -> nothing)
-
 # Import external packages with pyimport_conda
 sitk = pyimport_conda("SimpleITK", "simpleitk")
 np = pyimport_conda("numpy", "numpy")
 
-wandb.init(project="CanIonSynth")
 isinteractive() ? jim(:prompt, true) : prompt(:draw)
 include.([
     "../in_docker_organized/get_geometry_main.jl",

@@ -56,17 +56,6 @@ using Random
 sitk = pyimport("SimpleITK")
 np = pyimport("numpy")
 
-if !haskey(ENV, "SKIP_WANDB")
-    wandb = pyimport("wandb")
-    wandb.init(project="CanIonSynth")
-else
-    struct MockWandB
-        init::Function
-        log::Function
-    end
-    wandb = MockWandB((args...; kwargs...) -> nothing, (args...; kwargs...) -> nothing)
-end
-
 isinteractive() ? jim(:prompt, true) : prompt(:draw)
 includet.([
     "get_geometry_main.jl",
@@ -1571,17 +1560,8 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
     shutil = pyimport("shutil")
     shutil.make_archive("$(temp_fold)/$(file_name)", "zip", main_folder)
 
-    if !haskey(ENV, "SKIP_UPLOAD")
-        command = `gcloud storage cp $zip_path gs://metro_tk_kplayground/ionic-chambersx128/$file_name`
-        # Execute the command
-        run(command)
-        rm(main_folder; force=true, recursive=true)
-        rm(zip_path; force=true)
-    else
-        println("Skipping upload and deletion for debugging/testing.")
-        println("Output stored in: $main_folder")
-        println("Zip stored in: $zip_path")
-    end
+    println("Output stored in: $main_folder")
+    println("Zip stored in: $zip_path")
 
     return add_str
 end

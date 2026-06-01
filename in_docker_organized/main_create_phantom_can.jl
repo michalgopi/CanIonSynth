@@ -53,17 +53,6 @@ using Random
 sitk = pyimport("SimpleITK")
 np = pyimport("numpy")
 
-if !haskey(ENV, "SKIP_WANDB")
-    wandb = pyimport("wandb")
-    wandb.init(project="CanIonSynth")
-else
-    struct MockWandB
-        init::Function
-        log::Function
-    end
-    wandb = MockWandB((args...; kwargs...) -> nothing, (args...; kwargs...) -> nothing)
-end
-
 try
     skimage = pyimport("skimage")
     adrt = pyimport("adrt")
@@ -1230,17 +1219,8 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
     # Ensure the Google Cloud Storage folder exists
     file_name = "can_is_2D_$(is_2d)_is_radon_$(add_radon)_$(dims[1])|$(dims[2])|$(dims[3])_$uuid"
 
-    if !haskey(ENV, "SKIP_UPLOAD")
-        command = `gcloud storage cp $zip_path gs://metro_tk_kplayground/cansx128/$file_name`
-        # Execute the command
-        run(command)
-        rm(main_folder; force=true, recursive=true)
-        rm(zip_path; force=true)
-    else
-        println("Skipping upload and deletion for debugging/testing.")
-        println("Output stored in: $main_folder")
-        println("Zip stored in: $zip_path")
-    end
+    println("Output stored in: $main_folder")
+    println("Zip stored in: $zip_path")
 
     return numerical_vol, analytical_vol, fluid_volume_numerical_my
 end

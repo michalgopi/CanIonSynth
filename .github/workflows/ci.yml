@@ -54,8 +54,6 @@ jobs:
       - name: Run Tests
         env:
           PYTHON: ${{ env.PYTHON }}
-          SKIP_WANDB: true
-          SKIP_UPLOAD: true
           FIXED_UUIDS: 1
         run: |
           julia --project=. tests/run_tests.jl

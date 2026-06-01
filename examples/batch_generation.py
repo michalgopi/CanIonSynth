@@ -2,6 +2,14 @@ import os
 import uuid
 import subprocess
 import json
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+log = logging.getLogger(__name__)
 
 # Example of batch generation orchestration
 # This script mimics what coordinate_phantom_create.py does
@@ -13,11 +21,11 @@ def generate_batch():
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
-    print(f"Generating {NUM_PHANTOMS} phantoms...")
+    log.info(f"Generating {NUM_PHANTOMS} phantoms...")
 
     for i in range(NUM_PHANTOMS):
         run_uuid = str(uuid.uuid4())
-        print(f"  Generating phantom {i+1}/{NUM_PHANTOMS} (UUID: {run_uuid})")
+        log.info(f"Generating phantom {i+1}/{NUM_PHANTOMS} (UUID: {run_uuid})")
 
         # Command to run Julia script
         # We assume we are running from the repo root
@@ -34,17 +42,12 @@ def generate_batch():
             "0.0"        # Noise
         ]
 
-        # Set environment to skip upload for local test
-        env = os.environ.copy()
-        env["SKIP_UPLOAD"] = "true"
-        env["SKIP_WANDB"] = "true"
-
         try:
-            subprocess.run(cmd, env=env, check=True, capture_output=True)
-            print(f"  Success: {run_uuid}")
+            subprocess.run(cmd, check=True, capture_output=True)
+            log.info(f"Success: {run_uuid}")
         except subprocess.CalledProcessError as e:
-            print(f"  Error generating {run_uuid}: {e}")
-            print(e.stderr.decode())
+            log.error(f"Error generating {run_uuid}: {e}")
+            log.error(e.stderr.decode())
 
 if __name__ == "__main__":
     generate_batch()
