@@ -4,21 +4,7 @@ This guide explains how to generate reviewable outputs and turn them into quick-
 
 ## Prerequisites
 
-Set up the project as described in `README.md`, then disable optional external services.
-
-### PowerShell
-
-```powershell
-$env:SKIP_UPLOAD = "true"
-$env:SKIP_WANDB = "true"
-```
-
-### Bash
-
-```bash
-export SKIP_UPLOAD=true
-export SKIP_WANDB=true
-```
+Set up the project as described in `README.md`.
 
 ## Fastest Manual Test Path
 
@@ -87,11 +73,11 @@ julia --project=. in_docker_organized/main_create_phantom_ionic_chamber.jl 64x64
 
 ## Finding The Output Directory
 
-When `SKIP_UPLOAD=true`, each generator prints:
+Each generator always keeps outputs locally and prints the path:
 
 ```text
-Output stored in: <path>
-Zip stored in: <path>
+[2026-06-01 08:41:22] [INFO] Output stored in: <path>
+[2026-06-01 08:41:22] [INFO] Zip stored in: <path>
 ```
 
 Use that output directory with the visualization script.

@@ -6,8 +6,6 @@ ARG JULIA_VERSION=1.10.4
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
-ENV SKIP_UPLOAD=true
-ENV SKIP_WANDB=true
 ENV JULIA_HISTORY=/workspace/.julia_history
 
 # Install basic dependencies

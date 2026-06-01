@@ -40,10 +40,7 @@ function run_script_and_verify(script_name, args, check_files, description)
 
     cmd = `julia --project=$START_DIR $script_name $final_args`
 
-    # Set environment variables to skip upload/wandb
     env = copy(ENV)
-    env["SKIP_UPLOAD"] = "true"
-    env["SKIP_WANDB"] = "true"
 
     # Capture output to find the output directory
     output_buffer = IOBuffer()

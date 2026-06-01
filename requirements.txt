@@ -1,5 +1,4 @@
 SimpleITK
-wandb
 adrt
 h5py
 scikit-image

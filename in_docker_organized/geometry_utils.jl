@@ -1,4 +1,8 @@
 
+if !@isdefined(tlog)
+    tlog(args...) = println("[$(Dates.format(now(), "yyyy-mm-dd HH:MM:SS"))] [INFO] ", args...)
+end
+
 # python implementation taken from https://stackoverflow.com/questions/56171643/simpleitk-rotation-of-volumetric-data-e-g-mri
 function matrix_from_axis_angle(a)
     """ Compute rotation matrix from axis-angle.
@@ -119,14 +123,14 @@ function save_sitk_image_as_dicom(img, output_folder::String)
     arr = arr ./ maximum(arr)
     arr = arr .* 1000
     arr = UInt16.(round.(arr))
-    print("\n savinggggg $(size(arr)) \n")
+    tlog("saving $(size(arr))")
     # arr=UInt32.(round.(arr))
     is_two_dim=0
     if ndims(arr) == 2
         is_two_dim=1
         # arr=reshape(arr, (size(arr)...,1))
         # arr=cat(arr,arr,arr,dims=3)
-        print("\n two dimm  $(size(arr))\n ")
+        tlog("two dim $(size(arr))")
     end
 
     # copy spatial metadata
@@ -155,12 +159,14 @@ function save_sitk_image_as_dicom(img, output_folder::String)
 
     try
         if Sys.which("nii2dcm") !== nothing
-            run(cmd)
+            withenv("PYTHONWARNINGS" => "ignore::UserWarning") do
+                run(cmd)
+            end
         else
-            println("Warning: nii2dcm not found in path. Skipping DICOM conversion.")
+            tlog("Warning: nii2dcm not found in path. Skipping DICOM conversion.")
         end
     catch e
-        println("Warning: Failed to run nii2dcm: $e")
+        tlog("Warning: Failed to run nii2dcm: $e")
     end
 
     # 5) Remove the temporary NIfTI
@@ -287,7 +293,7 @@ Save a boolean mask as a NIfTI file with the specified spacing.
 function save_mask_as_nifti(mask::Array{Bool,3}, output_path::String, spacing::Tuple{Float64,Float64,Float64})
     # Convert boolean mask to UInt8
     save_nifti_with_meta(UInt8.(mask), true, spacing, output_path)
-    println("Saved mask to: $(output_path)")
+    tlog("Saved mask to: $(output_path)")
 end
 
 """
@@ -312,7 +318,7 @@ function convert_nifti_to_dicom_seg(nifti_path::String, reference_dicom_path::St
     script_path = joinpath(@__DIR__, "nifti_to_dicom_seg.py")
 
     if !isfile(script_path)
-        println("Warning: nifti_to_dicom_seg.py script not found at $(script_path)")
+        tlog("Warning: nifti_to_dicom_seg.py script not found at $(script_path)")
         return false
     end
 
@@ -323,14 +329,14 @@ function convert_nifti_to_dicom_seg(nifti_path::String, reference_dicom_path::St
         `$(PyCall.python) $(script_path) $(nifti_path) $(reference_dicom_path) $(output_folder) --reference_nifti $(reference_nifti_path)`
     end
 
-    println("Running command: $(cmd)")
+    tlog("Running command: $(cmd)")
 
     try
         run(cmd)
-        println("Successfully converted NIfTI to DICOM-SEG")
+        tlog("Successfully converted NIfTI to DICOM-SEG")
         return true
     catch e
-        println("Error converting NIfTI to DICOM-SEG: $(e)")
+        tlog("Error converting NIfTI to DICOM-SEG: $(e)")
         return false
     end
 end

@@ -18,8 +18,6 @@ function run_script_and_verify(script_name, args, description)
     cmd = `julia --project=$START_DIR $script_name $final_args`
 
     env = copy(ENV)
-    env["SKIP_UPLOAD"] = "true"
-    env["SKIP_WANDB"] = "true"
 
     try
         run(setenv(cmd, env))

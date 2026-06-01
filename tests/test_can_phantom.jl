@@ -22,21 +22,12 @@ using Accessors
 using ImageFiltering
 using Random
 
-# Mock WandB
-struct MockWandB
-    init::Function
-    log::Function
-end
-const wandb = MockWandB((args...; kwargs...) -> nothing, (args...; kwargs...) -> nothing)
-
 # Import external packages with pyimport_conda
 sitk = pyimport_conda("SimpleITK", "simpleitk")
 np = pyimport_conda("numpy", "numpy")
-# wandb = pyimport_conda("wandb", "wandb") # Disabled for testing
 skimage = pyimport_conda("skimage", "skimage")
 adrt = pyimport_conda("adrt", "adrt")
 
-# wandb.init(project="CanIonSynth") # Disabled
 isinteractive() ? jim(:prompt, true) : prompt(:draw)
 
 # Adjust includes to point to the correct location relative to tests/

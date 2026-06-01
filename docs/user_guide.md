@@ -11,12 +11,13 @@ The repository has two primary generation entry points:
 
 The supporting Python code is used for visualization, approximate Radon or inverse-Radon processing, and optional DICOM-SEG conversion. For everyday local use, the Julia entry points above are the recommended interface.
 
+All CLI output from both Julia scripts and Python helpers is timestamped using the format `[YYYY-MM-DD HH:MM:SS] [INFO] message`.
+
 ## Prerequisites
 
 - Python 3.10 is recommended.
 - Julia 1.11 is recommended for the checked-in `Manifest.toml`.
 - `nii2dcm` is optional and only needed for DICOM slice export.
-- `gcloud` is optional and only needed if you want to use the built-in Google Cloud upload paths.
 
 ## Local Installation
 
@@ -65,13 +66,11 @@ If you use VS Code, open the repository and reopen it in the Dev Container.
 
 ## Validate The Environment
 
-Before generating larger datasets, disable optional services and run the test suite.
+Run the test suite with deterministic UUIDs:
 
 ### PowerShell
 
 ```powershell
-$env:SKIP_WANDB = "true"
-$env:SKIP_UPLOAD = "true"
 $env:FIXED_UUIDS = "1"
 julia --project=. tests/run_tests.jl
 ```
@@ -79,8 +78,6 @@ julia --project=. tests/run_tests.jl
 ### Bash
 
 ```bash
-export SKIP_WANDB=true
-export SKIP_UPLOAD=true
 export FIXED_UUIDS=1
 julia --project=. tests/run_tests.jl
 ```
@@ -115,8 +112,6 @@ julia --project=. <script> <dims> <add_radon> <variable_spacing> <uuid> <randomi
 | 10 | `radon_n_theta` | Optional. Number of projection angles for the Radon transform (default `10`). Only used when `add_radon=true`. |
 
 Arguments 9 and 10 can also be set as JSON keys (`"radon_noise_level"` and `"radon_n_theta"`) in the config file supplied at position 8; the JSON values take precedence over the positional defaults.
-
-For local generation, keep `SKIP_WANDB=true` and `SKIP_UPLOAD=true` set unless you have configured those external services on purpose.
 
 ## Running A Can Phantom
 
@@ -195,7 +190,12 @@ If you provide a JSON file, keep the command-line `dims`, `uuid`, and processing
 
 ## Output Artifacts
 
-When `SKIP_UPLOAD=true`, the generators keep the output directory locally and print its location.
+Generated files are always kept locally. The generator prints the output directory and zip path:
+
+```text
+[2026-06-01 08:41:22] [INFO] Output stored in: /tmp/jl_XXXXXX/<uuid>
+[2026-06-01 08:41:22] [INFO] Zip stored in: /tmp/jl_XXXXXX/<uuid>.zip
+```
 
 Typical outputs include:
 
@@ -208,12 +208,21 @@ Typical outputs include:
 
 ## Environment Variables
 
-The following environment variables are useful during local development and CI:
+The following environment variables are available during local development and CI:
 
-- `SKIP_WANDB=true`: disables Weights and Biases logging
-- `SKIP_UPLOAD=true`: disables Google Cloud upload and keeps outputs locally
 - `FIXED_UUIDS=1`: makes the test harness use deterministic UUIDs
 - `SAVE_OUTPUTS_TO=<path>`: copies test outputs to a chosen directory before cleanup
+- `CONFIG_JSON_PATH=<path>`: overrides the default config file path for `coordinate_phantom_create.py`
+
+## Batch Orchestration
+
+`in_docker_organized/coordinate_phantom_create.py` is a Python batch helper that reads a local JSON configuration file and launches the appropriate Julia generator for each entry. By default it looks for `in_docker_organized/control_json_can_128.json`; override the path with the `CONFIG_JSON_PATH` environment variable:
+
+```bash
+CONFIG_JSON_PATH=/path/to/my_config.json python in_docker_organized/coordinate_phantom_create.py
+```
+
+If the config includes a `json_folders_path` key pointing to a local directory, the script lists JSON files from that directory and runs one generation job per file.
 
 ## Examples And Helper Scripts
 
@@ -237,14 +246,6 @@ julia --project=. tests/setup_env.jl
 ### DICOM Conversion Is Skipped
 
 The repository will still generate NIfTI outputs if `nii2dcm` is missing. Install the DICOM toolchain only if you need DICOM slice output.
-
-### WandB Or Cloud Uploads Fail
-
-For normal local work, set `SKIP_WANDB=true` and `SKIP_UPLOAD=true`.
-
-### The Coordinator Script Is Too Environment-Specific
-
-`in_docker_organized/coordinate_phantom_create.py` still assumes specific Google Cloud Storage paths and is best treated as a project-specific automation helper. For local use, run the Julia entry points directly.
 
 ### Julia Version Mismatch
 

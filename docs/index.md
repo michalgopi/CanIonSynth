@@ -20,6 +20,7 @@ julia --project=. tests/setup_env.jl
 Run the automated tests:
 
 ```bash
+export FIXED_UUIDS=1
 julia --project=. tests/run_tests.jl
 ```
 

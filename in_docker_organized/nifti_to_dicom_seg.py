@@ -14,7 +14,7 @@ from pydicom import config
 config.replace_un_with_known_vr = False
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
 # Path to metadata template for DICOM-SEG creation

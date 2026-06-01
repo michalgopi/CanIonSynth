@@ -4,23 +4,7 @@ This guide provides a reviewer-friendly checklist for validating the generated o
 
 ## Before You Start
 
-Use a local environment with the optional external services disabled.
-
-### PowerShell
-
-```powershell
-$env:SKIP_WANDB = "true"
-$env:SKIP_UPLOAD = "true"
-```
-
-### Bash
-
-```bash
-export SKIP_WANDB=true
-export SKIP_UPLOAD=true
-```
-
-Generate outputs with the commands from `docs/manual_testing_visualization.md`, then inspect them with `scripts/visualize_nifti.py` or a medical imaging viewer such as 3D Slicer or ITK-SNAP.
+Set up the project as described in `README.md`, then generate outputs with the commands from `docs/manual_testing_visualization.md`. Inspect the results with `scripts/visualize_nifti.py` or a medical imaging viewer such as 3D Slicer or ITK-SNAP.
 
 ## Can Phantom Checklist
 
@@ -77,14 +61,14 @@ For runs with `add_radon=true`:
 
 ### Can Workflow
 
-- inspect the console output for the analytical and numerical fluid-volume comparison
+- inspect the timestamped console output for the analytical and numerical fluid-volume comparison
 - inspect `argss.json` for the saved parameter and spacing information
 - treat small relative differences as expected discretization error
 - investigate large mismatches by checking spacing, masks, and complex geometry interactions
 
 ### Ionic Chamber Workflow
 
-- inspect the console output for the analytical and numerical air-volume comparison
+- inspect the timestamped console output for the analytical and numerical air-volume comparison
 - confirm the reported difference stays in a plausible range for the chosen resolution
 
 ## Optional DICOM Verification

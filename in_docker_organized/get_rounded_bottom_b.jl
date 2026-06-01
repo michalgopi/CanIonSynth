@@ -102,7 +102,7 @@ function create_torus(
     angle_deg = rad2deg(angle_rad)
     num_steps = ceil(Int, 360 / angle_deg)
     angle_step = 360 / num_steps
-    println("Angle step: $angle_step num_steps $num_steps")
+    tlog("Angle step: $angle_step num_steps $num_steps")
 
     # Iterate over angles, place sphere at each angle, then combine
     # Initialize vector of vectors to store sphere positions
@@ -112,7 +112,7 @@ function create_torus(
     Threads.@threads for i in 0:(num_steps-1)
         angle = i * angle_step
         angle_rad2 = deg2rad(angle)
-        print("*")
+        tlog("processing rotation step $i")
 
         # Rotate around x-axis in the YZ-plane
         # The center shifts in X and Z by orbit_radius
@@ -337,7 +337,7 @@ function get_rounded_bottom(
     # Final check and correction for any residual overlap
     overlap = ball1 .& ball2
     if any(overlap)
-        println("Warning: Adjusted balls still overlap slightly. Partitioning overlap region.")
+        tlog("Warning: Adjusted balls still overlap slightly. Partitioning overlap region.")
         overlap_coords = findall(overlap)
         for (i, coord) in enumerate(overlap_coords)
             if i % 2 == 0
@@ -349,12 +349,12 @@ function get_rounded_bottom(
     end
 
     # For verification - print ball positions relative to torus
-    # println("Inner torus radius: $(inner_r_xy), Ball radius: $(ball_radius)")
-    # println("Ball1 center: $(ball1_center), Ball2 center: $(ball2_center)")
-    # println("Distance from ball1 to center_torus: $(sqrt((ball1_center[1] - center_torus[1])^2 + (ball1_center[2] - center_torus[2])^2))")
-    # println("Distance from ball2 to center_torus: $(sqrt((ball2_center[1] - center_torus[1])^2 + (ball2_center[2] - center_torus[2])^2))")
-    # println("Distance between ball centers: $(sqrt((ball1_center[1] - ball2_center[1])^2 + (ball1_center[2] - ball2_center[2])^2 + (ball1_center[3] - ball2_center[3])^2))")
-    # println("Ball1 volume: $(ball1_volume), Ball2 volume: $(ball2_volume), Outer sphere volume: $(outer_sphere_volume)")
+    # tlog("Inner torus radius: $(inner_r_xy), Ball radius: $(ball_radius)")
+    # tlog("Ball1 center: $(ball1_center), Ball2 center: $(ball2_center)")
+    # tlog("Distance from ball1 to center_torus: $(sqrt((ball1_center[1] - center_torus[1])^2 + (ball1_center[2] - center_torus[2])^2))")
+    # tlog("Distance from ball2 to center_torus: $(sqrt((ball2_center[1] - center_torus[1])^2 + (ball2_center[2] - center_torus[2])^2))")
+    # tlog("Distance between ball centers: $(sqrt((ball1_center[1] - ball2_center[1])^2 + (ball1_center[2] - ball2_center[2])^2 + (ball1_center[3] - ball2_center[3])^2))")
+    # tlog("Ball1 volume: $(ball1_volume), Ball2 volume: $(ball2_volume), Outer sphere volume: $(outer_sphere_volume)")
 
     return main_torus, inner_torus, outer_sphere, inner_sphere, ball1_obj, ball2_obj,
     main_torus_volume_analytical, inner_torus_volume_analytical,
@@ -421,7 +421,7 @@ end
 #     save_nifti(outer_sphere, spacing, "$main_fold/outer_sphere.nii.gz")
 #     save_nifti(inner_sphere, spacing, "$main_fold/inner_sphere.nii.gz")
 
-#     println("Torus and spheres saved")
+#     tlog("Torus and spheres saved")
 # end
 
 # main()
