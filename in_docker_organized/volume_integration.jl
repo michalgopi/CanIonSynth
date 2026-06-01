@@ -57,11 +57,11 @@ function compute_fluid_volume_in_can(
     if dual_phase_percentage == 1.0
         # Single fluid phase
         main_volume = IP.volume(phantoms_dict["ob2_a"][3])
-        println("Base fluid volume (single phase): $(main_volume)")
+        tlog("Base fluid volume (single phase): $(main_volume)")
     else
         # Dual fluid phase
         main_volume = IP.volume(phantoms_dict["ob2_a"][3]) + IP.volume(phantoms_dict["ob2_b"][3])
-        println("Base fluid volume (dual phase): $(main_volume)")
+        tlog("Base fluid volume (dual phase): $(main_volume)")
     end
 
     # STEP 1: Calculate the top cut plane and cylinder geometry
@@ -150,8 +150,8 @@ function compute_fluid_volume_in_can(
 
     # Update the main volume calculation
     main_volume = cylinder_below_cut_vol + (diff_vol * cm^3)
-    println("Cylinder below cut: $(cylinder_below_cut_vol)")
-    println("Difference above cylinder: $(diff_vol) cm³")
+    tlog("Cylinder below cut: $(cylinder_below_cut_vol)")
+    tlog("Difference above cylinder: $(diff_vol) cm³")
 
     # STEP 2: Handle bottom geometry
     if rounded_bottom
@@ -161,13 +161,13 @@ function compute_fluid_volume_in_can(
 
         if inner_torus_volume_analytical > 0.0
             inner_torus_cm3 = inner_torus_volume_analytical * cm^3
-            println("Adding half inner torus: $(inner_torus_cm3/2)")
+            tlog("Adding half inner torus: $(inner_torus_cm3/2)")
             main_volume += inner_torus_cm3 / 2
         end
 
         if outer_sphere_volume > 0.0
             outer_sphere_cm3 = outer_sphere_volume * cm^3
-            println("Subtracting half outer sphere: $(outer_sphere_cm3/2)")
+            tlog("Subtracting half outer sphere: $(outer_sphere_cm3/2)")
             main_volume -= outer_sphere_cm3 / 2
         end
     else
@@ -192,10 +192,10 @@ function compute_fluid_volume_in_can(
             # Calculate the part of center_bottom_out not in ob5
             center_bottom_unique_vol = center_bottom_vol - (intersection_vol * cm^3)
 
-            println("Volume of ob5: $(ob5_vol)")
-            println("Volume of center_bottom_out: $(center_bottom_vol)")
-            println("Volume of intersection: $(intersection_vol) cm³")
-            println("Unique volume of center_bottom_out: $(center_bottom_unique_vol)")
+            tlog("Volume of ob5: $(ob5_vol)")
+            tlog("Volume of center_bottom_out: $(center_bottom_vol)")
+            tlog("Volume of intersection: $(intersection_vol) cm³")
+            tlog("Unique volume of center_bottom_out: $(center_bottom_unique_vol)")
 
             # Subtract these volumes from main_volume
             main_volume = main_volume - ob5_vol - center_bottom_unique_vol
@@ -206,14 +206,14 @@ function compute_fluid_volume_in_can(
     if first_ball && haskey(phantoms_dict, "ball1")
         ball1_obj = phantoms_dict["ball1"][3]  # Get the actual object, not mask
         ball1_volume = IP.volume(ball1_obj)
-        println("Subtracting ball1: $(ball1_volume)")
+        tlog("Subtracting ball1: $(ball1_volume)")
         main_volume -= ball1_volume
     end
 
     if second_ball && haskey(phantoms_dict, "ball2")
         ball2_obj = phantoms_dict["ball2"][3]  # Get the actual object, not mask
         ball2_volume = IP.volume(ball2_obj)
-        println("Subtracting ball2: $(ball2_volume)")
+        tlog("Subtracting ball2: $(ball2_volume)")
         main_volume -= ball2_volume
     end
 
@@ -227,7 +227,7 @@ function compute_fluid_volume_in_can(
         pipe_calc_cyl_intersection = pipe_mask .& calc_cyl_mask
         pipe_overlap_vol = sum(pipe_calc_cyl_intersection) * voxel_volume
 
-        println("Pipe overlap with fluid: $(pipe_overlap_vol) cm³")
+        tlog("Pipe overlap with fluid: $(pipe_overlap_vol) cm³")
         main_volume -= pipe_overlap_vol * cm^3
     end
 
@@ -235,13 +235,13 @@ function compute_fluid_volume_in_can(
     analytical_vol = Unitful.ustrip(cm^3, main_volume)
 
     # Print final comparison
-    println("Final analytical volume: $(main_volume) ($(analytical_vol) cm³)")
-    println("Final numerical volume: $(numerical_vol) cm³")
-    println("Difference: $(abs(analytical_vol - numerical_vol)) cm³")
+    tlog("Final analytical volume: $(main_volume) ($(analytical_vol) cm³)")
+    tlog("Final numerical volume: $(numerical_vol) cm³")
+    tlog("Difference: $(abs(analytical_vol - numerical_vol)) cm³")
 
     if numerical_vol > 0
         rel_diff = 100.0 * abs(analytical_vol - numerical_vol) / numerical_vol
-        println("Relative difference: $(rel_diff)%")
+        tlog("Relative difference: $(rel_diff)%")
     end
 
     return numerical_vol, analytical_vol
@@ -403,7 +403,7 @@ function compute_fluid_volume_in_can_v3(
     else
         main_volume = IP.volume(phantoms_dict["ob2_a"][3]) + IP.volume(phantoms_dict["ob2_b"][3])
     end
-    println("Base fluid volume: $(main_volume)")
+    tlog("Base fluid volume: $(main_volume)")
 
     # 2. Account for top cut with tilt
     # Calculate lowest point of tilted cut plane
@@ -441,7 +441,7 @@ function compute_fluid_volume_in_can_v3(
 
     # Calculate analytical volume of cylinder
     cylinder_vol = IP.volume(calc_cyl)
-    println("Volume of fluid cylinder below cut: $(cylinder_vol)")
+    tlog("Volume of fluid cylinder below cut: $(cylinder_vol)")
 
     # Create boolean mask for the cylinder
     calc_cyl_mask = phantom(axes(ig)..., [calc_cyl]) .!= 0
@@ -469,7 +469,7 @@ function compute_fluid_volume_in_can_v3(
 
     # Calculate volume of the difference
     diff_vol = sum(diff_mask) * voxel_volume
-    println("Volume of fluid above cylinder center: $(diff_vol) cm³")
+    tlog("Volume of fluid above cylinder center: $(diff_vol) cm³")
 
     # Save the difference mask
     diff_uint8 = UInt8.(diff_mask) .* 255
@@ -487,13 +487,13 @@ function compute_fluid_volume_in_can_v3(
         # A) For rounded bottom: add half inner torus, subtract half outer sphere
         if inner_torus_volume_analytical > 0.0
             inner_torus_vol_cm3 = inner_torus_volume_analytical * cm^3
-            println("Adding half inner torus: $(inner_torus_vol_cm3/2)")
+            tlog("Adding half inner torus: $(inner_torus_vol_cm3/2)")
             main_volume += inner_torus_vol_cm3 / 2
         end
 
         if outer_sphere_volume > 0.0
             outer_sphere_vol_cm3 = outer_sphere_volume * cm^3
-            println("Subtracting half outer sphere: $(outer_sphere_vol_cm3/2)")
+            tlog("Subtracting half outer sphere: $(outer_sphere_vol_cm3/2)")
             main_volume -= outer_sphere_vol_cm3 / 2
         end
     else
@@ -518,10 +518,10 @@ function compute_fluid_volume_in_can_v3(
             # Calculate part of center_bottom_out not in ob5
             center_bottom_unique = center_bottom_vol_full - intersection_vol
 
-            println("ob5 volume: $(ob5_vol)")
-            println("center_bottom_out volume: $(center_bottom_vol_full)")
-            println("Intersection volume: $(intersection_vol)")
-            println("Unique center_bottom_out volume: $(center_bottom_unique)")
+            tlog("ob5 volume: $(ob5_vol)")
+            tlog("center_bottom_out volume: $(center_bottom_vol_full)")
+            tlog("Intersection volume: $(intersection_vol)")
+            tlog("Unique center_bottom_out volume: $(center_bottom_unique)")
 
             # Save center_bottom_out as nifti
             center_bottom_uint8 = UInt8.(center_bottom_mask) .* 255
@@ -538,13 +538,13 @@ function compute_fluid_volume_in_can_v3(
     # 4.1 Subtract ball volumes if present
     if first_ball && haskey(phantoms_dict, "ball1")
         ball1_vol = IP.volume(phantoms_dict["ball1"][3])
-        println("Subtracting ball1: $(ball1_vol)")
+        tlog("Subtracting ball1: $(ball1_vol)")
         main_volume -= ball1_vol
     end
 
     if second_ball && haskey(phantoms_dict, "ball2")
         ball2_vol = IP.volume(phantoms_dict["ball2"][3])
-        println("Subtracting ball2: $(ball2_vol)")
+        tlog("Subtracting ball2: $(ball2_vol)")
         main_volume -= ball2_vol
     end
 
@@ -552,13 +552,13 @@ function compute_fluid_volume_in_can_v3(
     # We always subtract outer_sphere/2 and add inner_torus/2 as a final adjustment
     if outer_sphere_volume > 0.0 && !rounded_bottom
         outer_sphere_vol_cm3 = outer_sphere_volume * cm^3
-        println("Final adjustment: subtracting half outer sphere: $(outer_sphere_vol_cm3/2)")
+        tlog("Final adjustment: subtracting half outer sphere: $(outer_sphere_vol_cm3/2)")
         main_volume -= outer_sphere_vol_cm3 / 2
     end
 
     if inner_torus_volume_analytical > 0.0 && !rounded_bottom
         inner_torus_vol_cm3 = inner_torus_volume_analytical * cm^3
-        println("Final adjustment: adding half inner torus: $(inner_torus_vol_cm3/2)")
+        tlog("Final adjustment: adding half inner torus: $(inner_torus_vol_cm3/2)")
         main_volume += inner_torus_vol_cm3 / 2
     end
 
@@ -577,7 +577,7 @@ function compute_fluid_volume_in_can_v3(
         pipe_cyl_intersection = pipe_mask .& calc_cyl_mask
         pipe_overlap_vol = sum(pipe_cyl_intersection) * voxel_volume
 
-        println("Pipe overlap with fluid: $(pipe_overlap_vol) cm³")
+        tlog("Pipe overlap with fluid: $(pipe_overlap_vol) cm³")
         main_volume -= pipe_overlap_vol * cm^3
     end
 
@@ -585,12 +585,12 @@ function compute_fluid_volume_in_can_v3(
     analytical_vol = Unitful.ustrip(cm^3, main_volume)
 
     # Print final results
-    println("Final analytical volume: $(main_volume) ($(analytical_vol) cm³)")
-    println("Final numerical volume: $(numerical_vol) cm³")
-    println("Difference: $(abs(analytical_vol - numerical_vol)) cm³")
+    tlog("Final analytical volume: $(main_volume) ($(analytical_vol) cm³)")
+    tlog("Final numerical volume: $(numerical_vol) cm³")
+    tlog("Difference: $(abs(analytical_vol - numerical_vol)) cm³")
     if numerical_vol > 0
         rel_diff = 100.0 * abs(analytical_vol - numerical_vol) / numerical_vol
-        println("Relative difference: $(rel_diff)%")
+        tlog("Relative difference: $(rel_diff)%")
     end
 
     return numerical_vol, analytical_vol
@@ -649,17 +649,17 @@ function compute_accurate_fluid_volume(
     # Simply use the fluid_mask that has been prepared
     fluid_mask = params["fluid_mask"]
     numerical_vol = sum(fluid_mask) * voxel_volume
-    println("Numerical volume from fluid_mask: $(numerical_vol) cm³")
+    tlog("Numerical volume from fluid_mask: $(numerical_vol) cm³")
 
     # STEP 2: ANALYTICAL VOLUME CALCULATION - Base volume
     # Determine base volume from ob2_a/ob2_b based on dual phase percentage
     local main_volume
     if dual_phase_percentage == 1.0
         main_volume = IP.volume(phantoms_dict["ob2_a"][3])
-        println("Base fluid volume (single phase): $(main_volume)")
+        tlog("Base fluid volume (single phase): $(main_volume)")
     else
         main_volume = IP.volume(phantoms_dict["ob2_a"][3]) + IP.volume(phantoms_dict["ob2_b"][3])
-        println("Base fluid volume (dual phases): $(main_volume)")
+        tlog("Base fluid volume (dual phases): $(main_volume)")
     end
 
     # STEP 3: Handle the top cut with tilt
@@ -669,7 +669,7 @@ function compute_accurate_fluid_volume(
 
         # Calculate the analytical volume of this cylinder
         cylinder_below_cut_vol = IP.volume(phantoms_dict["calc_cyl"][3])
-        println("Volume of fluid cylinder below cut: $(cylinder_below_cut_vol)")
+        tlog("Volume of fluid cylinder below cut: $(cylinder_below_cut_vol)")
     else
         # If calc_cyl wasn't added to phantoms_dict, we need to create it here
         x_cut_angle = params["x_cut_angle"]
@@ -703,7 +703,7 @@ function compute_accurate_fluid_volume(
 
         # Calculate the analytical volume
         cylinder_below_cut_vol = IP.volume(calc_cyl)
-        println("Volume of fluid cylinder below cut (created): $(cylinder_below_cut_vol)")
+        tlog("Volume of fluid cylinder below cut (created): $(cylinder_below_cut_vol)")
 
         # Create the boolean mask
         calc_cyl_mask = phantom(axes(ig)..., [calc_cyl]) .!= 0
@@ -740,7 +740,7 @@ function compute_accurate_fluid_volume(
 
     # Calculate the volume of this difference and convert to cubic centimeters
     diff_vol = sum(diff_mask) * voxel_volume
-    println("Volume of fluid above cylinder center: $(diff_vol) cm³")
+    tlog("Volume of fluid above cylinder center: $(diff_vol) cm³")
 
     # Save the difference mask for debugging
     diff_uint8 = UInt8.(diff_mask) .* 255
@@ -749,7 +749,7 @@ function compute_accurate_fluid_volume(
 
     # Update main_volume with cylinder and difference volumes
     main_volume = cylinder_below_cut_vol + (diff_vol * cm^3)
-    println("Adjusted fluid volume after top cut: $(main_volume)")
+    tlog("Adjusted fluid volume after top cut: $(main_volume)")
 
     # STEP 4: Handle bottom geometry based on rounded_bottom
     if rounded_bottom
@@ -760,14 +760,14 @@ function compute_accurate_fluid_volume(
         # Add half inner torus
         if inner_torus_volume_analytical > 0
             inner_torus_vol_cm3 = inner_torus_volume_analytical * cm^3
-            println("Adding half inner torus: $(inner_torus_vol_cm3/2)")
+            tlog("Adding half inner torus: $(inner_torus_vol_cm3/2)")
             main_volume += inner_torus_vol_cm3 / 2
         end
 
         # Subtract half outer sphere
         if outer_sphere_volume > 0
             outer_sphere_vol_cm3 = outer_sphere_volume * cm^3
-            println("Subtracting half outer sphere: $(outer_sphere_vol_cm3/2)")
+            tlog("Subtracting half outer sphere: $(outer_sphere_vol_cm3/2)")
             main_volume -= outer_sphere_vol_cm3 / 2
         end
     else
@@ -797,16 +797,16 @@ function compute_accurate_fluid_volume(
             # Calculate the unique part of center_bottom_out
             center_bottom_unique_vol = center_bottom_vol_full - intersection_vol
 
-            println("Volume of ob5: $(ob5_vol)")
-            println("Volume of center_bottom_out: $(center_bottom_vol_full)")
-            println("Volume of intersection: $(intersection_vol)")
-            println("Unique volume of center_bottom_out: $(center_bottom_unique_vol)")
+            tlog("Volume of ob5: $(ob5_vol)")
+            tlog("Volume of center_bottom_out: $(center_bottom_vol_full)")
+            tlog("Volume of intersection: $(intersection_vol)")
+            tlog("Unique volume of center_bottom_out: $(center_bottom_unique_vol)")
 
             # Subtract both volumes
             main_volume -= ob5_vol
             main_volume -= center_bottom_unique_vol
 
-            println("Adjusted fluid volume after bottom subtract: $(main_volume)")
+            tlog("Adjusted fluid volume after bottom subtract: $(main_volume)")
         end
     end
 
@@ -814,13 +814,13 @@ function compute_accurate_fluid_volume(
     # Subtract ball volumes if present
     if first_ball && haskey(phantoms_dict, "ball1")
         ball1_volume = IP.volume(phantoms_dict["ball1"][3])
-        println("Subtracting ball1: $(ball1_volume)")
+        tlog("Subtracting ball1: $(ball1_volume)")
         main_volume -= ball1_volume
     end
 
     if second_ball && haskey(phantoms_dict, "ball2")
         ball2_volume = IP.volume(phantoms_dict["ball2"][3])
-        println("Subtracting ball2: $(ball2_volume)")
+        tlog("Subtracting ball2: $(ball2_volume)")
         main_volume -= ball2_volume
     end
 
@@ -833,13 +833,13 @@ function compute_accurate_fluid_volume(
 
         if outer_sphere_volume > 0
             outer_sphere_vol_cm3 = outer_sphere_volume * cm^3
-            println("Additional: subtracting half outer sphere: $(outer_sphere_vol_cm3/2)")
+            tlog("Additional: subtracting half outer sphere: $(outer_sphere_vol_cm3/2)")
             main_volume -= outer_sphere_vol_cm3 / 2
         end
 
         if inner_torus_volume_analytical > 0
             inner_torus_vol_cm3 = inner_torus_volume_analytical * cm^3
-            println("Additional: adding half inner torus: $(inner_torus_vol_cm3/2)")
+            tlog("Additional: adding half inner torus: $(inner_torus_vol_cm3/2)")
             main_volume += inner_torus_vol_cm3 / 2
         end
     end
@@ -850,7 +850,7 @@ function compute_accurate_fluid_volume(
         pipe_calc_cyl_overlap = pipe_mask .& calc_cyl_mask
         pipe_overlap_vol = sum(pipe_calc_cyl_overlap) * voxel_volume * cm^3
 
-        println("Pipe overlap with fluid: $(pipe_overlap_vol)")
+        tlog("Pipe overlap with fluid: $(pipe_overlap_vol)")
         main_volume -= pipe_overlap_vol
     end
 
@@ -858,13 +858,13 @@ function compute_accurate_fluid_volume(
     analytical_vol = Unitful.ustrip(cm^3, main_volume)
 
     # Print final comparison
-    println("Final analytical volume: $(main_volume) ($(analytical_vol) cm³)")
-    println("Final numerical volume: $(numerical_vol) cm³")
-    println("Absolute difference: $(abs(analytical_vol - numerical_vol)) cm³")
+    tlog("Final analytical volume: $(main_volume) ($(analytical_vol) cm³)")
+    tlog("Final numerical volume: $(numerical_vol) cm³")
+    tlog("Absolute difference: $(abs(analytical_vol - numerical_vol)) cm³")
 
     if numerical_vol > 0
         rel_diff = 100.0 * abs(analytical_vol - numerical_vol) / numerical_vol
-        println("Relative difference: $(rel_diff)%")
+        tlog("Relative difference: $(rel_diff)%")
     end
 
     return numerical_vol, analytical_vol
@@ -944,15 +944,15 @@ function compute_accurate_fluid_volume_fixed(
     # NUMERICAL VOLUME CALCULATION - Use fluid_mask directly
     fluid_mask = params["fluid_mask"]
     numerical_vol = sum(fluid_mask) * voxel_volume
-    println("Numerical volume from fluid_mask: $(numerical_vol) cm³")
+    tlog("Numerical volume from fluid_mask: $(numerical_vol) cm³")
 
     # ANALYTICAL VOLUME - Base calculation depending on fluid phases
     if dual_phase_percentage == 1.0
         main_volume = IP.volume(phantoms_dict["ob2_a"][3])
-        println("Base fluid volume (single phase): $(main_volume)")
+        tlog("Base fluid volume (single phase): $(main_volume)")
     else
         main_volume = IP.volume(phantoms_dict["ob2_a"][3]) + IP.volume(phantoms_dict["ob2_b"][3])
-        println("Base fluid volume (dual phases): $(main_volume)")
+        tlog("Base fluid volume (dual phases): $(main_volume)")
     end
 
     # Handle the tilted top cut geometry
@@ -961,7 +961,7 @@ function compute_accurate_fluid_volume_fixed(
     # Retrieve or calculate the calc_cyl cylinder that represents fluid below the cut
     if haskey(phantoms_dict, "calc_cyl")
         # If calc_cyl was created in empty_cylinder_with_half_sphere_bottom_p
-        println("Using pre-calculated calc_cyl from phantoms_dict")
+        tlog("Using pre-calculated calc_cyl from phantoms_dict")
         calc_cyl = phantoms_dict["calc_cyl"][3]
 
         # Calculate cylinder parameters based on object properties
@@ -983,7 +983,7 @@ function compute_accurate_fluid_volume_fixed(
         calc_cyl_mask = get_cylinder_bool_mask([calc_cyl], ig)
     else
         # If we need to create the calc_cyl here
-        println("Creating calc_cyl cylinder")
+        tlog("Creating calc_cyl cylinder")
 
         # Calculate geometry for the tilted cut
         cylinder_top_z = center_cylinder[3] + (bigger_cyl_size[3] / 2)
@@ -1016,7 +1016,7 @@ function compute_accurate_fluid_volume_fixed(
 
     # Calculate volume of the cylinder below cut
     cylinder_below_cut_vol = IP.volume(calc_cyl)
-    println("Volume of fluid cylinder below cut: $(cylinder_below_cut_vol)")
+    tlog("Volume of fluid cylinder below cut: $(cylinder_below_cut_vol)")
 
     # Save the calculated cylinder mask as a NIFTI file
     sitk = pyimport("SimpleITK")
@@ -1048,7 +1048,7 @@ function compute_accurate_fluid_volume_fixed(
 
     # Calculate volume of the difference
     diff_vol = sum(diff_mask) * voxel_volume
-    println("Volume of fluid above cylinder center: $(diff_vol) cm³")
+    tlog("Volume of fluid above cylinder center: $(diff_vol) cm³")
 
     # Save the difference mask for debugging
     diff_uint8 = UInt8.(diff_mask) .* 255
@@ -1057,7 +1057,7 @@ function compute_accurate_fluid_volume_fixed(
 
     # Update main volume with cylinder and difference volumes
     main_volume = cylinder_below_cut_vol + (diff_vol * cm^3)
-    println("Volume after adjusting for top cut: $(main_volume)")
+    tlog("Volume after adjusting for top cut: $(main_volume)")
 
     # Handle bottom geometry based on rounded_bottom parameter
     inner_torus_volume_analytical = safe_get(params, "inner_torus_volume_analytical", 0.0)
@@ -1068,14 +1068,14 @@ function compute_accurate_fluid_volume_fixed(
         # Add half inner torus volume
         if inner_torus_volume_analytical > 0.0
             inner_torus_cm3 = inner_torus_volume_analytical * cm^3
-            println("Adding half inner torus: $(inner_torus_cm3/2)")
+            tlog("Adding half inner torus: $(inner_torus_cm3/2)")
             main_volume += inner_torus_cm3 / 2
         end
 
         # Subtract half outer sphere volume
         if outer_sphere_volume > 0.0
             outer_sphere_cm3 = outer_sphere_volume * cm^3
-            println("Subtracting half outer sphere: $(outer_sphere_cm3/2)")
+            tlog("Subtracting half outer sphere: $(outer_sphere_cm3/2)")
             main_volume -= outer_sphere_cm3 / 2
         end
     else
@@ -1109,10 +1109,10 @@ function compute_accurate_fluid_volume_fixed(
             # Calculate unique part of center_bottom_out not in ob5
             center_bottom_unique_vol = center_bottom_vol_full - intersection_vol
 
-            println("Volume of ob5: $(ob5_vol)")
-            println("Volume of center_bottom_out: $(center_bottom_vol_full)")
-            println("Intersection volume: $(intersection_vol)")
-            println("Unique center_bottom volume: $(center_bottom_unique_vol)")
+            tlog("Volume of ob5: $(ob5_vol)")
+            tlog("Volume of center_bottom_out: $(center_bottom_vol_full)")
+            tlog("Intersection volume: $(intersection_vol)")
+            tlog("Unique center_bottom volume: $(center_bottom_unique_vol)")
 
             # Subtract both volumes as required
             main_volume -= ob5_vol
@@ -1125,13 +1125,13 @@ function compute_accurate_fluid_volume_fixed(
     # Subtract ball volumes if present
     if first_ball && haskey(phantoms_dict, "ball1")
         ball1_vol = IP.volume(phantoms_dict["ball1"][3])
-        println("Subtracting ball1: $(ball1_vol)")
+        tlog("Subtracting ball1: $(ball1_vol)")
         main_volume -= ball1_vol
     end
 
     if second_ball && haskey(phantoms_dict, "ball2")
         ball2_vol = IP.volume(phantoms_dict["ball2"][3])
-        println("Subtracting ball2: $(ball2_vol)")
+        tlog("Subtracting ball2: $(ball2_vol)")
         main_volume -= ball2_vol
     end
 
@@ -1140,13 +1140,13 @@ function compute_accurate_fluid_volume_fixed(
         # Apply the additional adjustments
         if outer_sphere_volume > 0.0
             outer_sphere_cm3 = outer_sphere_volume * cm^3
-            println("Additional: subtracting half outer sphere: $(outer_sphere_cm3/2)")
+            tlog("Additional: subtracting half outer sphere: $(outer_sphere_cm3/2)")
             main_volume -= outer_sphere_cm3 / 2
         end
 
         if inner_torus_volume_analytical > 0.0
             inner_torus_cm3 = inner_torus_volume_analytical * cm^3
-            println("Additional: adding half inner torus: $(inner_torus_cm3/2)")
+            tlog("Additional: adding half inner torus: $(inner_torus_cm3/2)")
             main_volume += inner_torus_cm3 / 2
         end
     end
@@ -1157,7 +1157,7 @@ function compute_accurate_fluid_volume_fixed(
         # pipe_calc_cyl_intersection = pipe_mask .& calc_cyl_mask
         # pipe_overlap_vol = sum(pipe_calc_cyl_intersection) * voxel_volume
 
-        # println("Pipe overlap with fluid: $(pipe_overlap_vol) cm³")
+        # tlog("Pipe overlap with fluid: $(pipe_overlap_vol) cm³")
         # main_volume -= pipe_overlap_vol * cm^3
         main_volume -= IP.volume(phantoms_dict["outside_of_pipe_in_fluid"][3])
         main_volume += IP.volume(phantoms_dict["inside_of_pipe_in_fluid"][3])
@@ -1169,13 +1169,13 @@ function compute_accurate_fluid_volume_fixed(
     analytical_vol = Unitful.ustrip(cm^3, main_volume)
 
     # Print final results
-    println("Final analytical volume: $(analytical_vol) cm³")
-    println("Final numerical volume: $(numerical_vol) cm³")
-    println("Difference: $(abs(analytical_vol - numerical_vol)) cm³")
+    tlog("Final analytical volume: $(analytical_vol) cm³")
+    tlog("Final numerical volume: $(numerical_vol) cm³")
+    tlog("Difference: $(abs(analytical_vol - numerical_vol)) cm³")
 
     if numerical_vol > 0
         rel_diff = 100.0 * abs(analytical_vol - numerical_vol) / numerical_vol
-        println("Relative difference: $(rel_diff)%")
+        tlog("Relative difference: $(rel_diff)%")
     end
 
     return numerical_vol, analytical_vol

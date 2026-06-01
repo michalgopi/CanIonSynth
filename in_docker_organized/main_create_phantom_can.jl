@@ -23,7 +23,7 @@ args_json_path = length(ARGS) >= 8 ? ARGS[8] : " "
 radon_noise_level = length(ARGS) >= 9 ? parse(Float64, ARGS[9]) : 0.0
 radon_n_theta = length(ARGS) >= 10 ? parse(Int, ARGS[10]) : 10
 
-print("\n dims $dims add_radon $add_radon add_smooth $add_smooth additive_noise $additive_noise \n")
+tlog("dims $dims add_radon $add_radon add_smooth $add_smooth additive_noise $additive_noise")
 
 using Pkg
 # using Pkg;
@@ -57,7 +57,7 @@ try
     skimage = pyimport("skimage")
     adrt = pyimport("adrt")
 catch e
-    println("Warning: Could not import skimage or adrt. Proceeding without them.")
+    tlog("Warning: Could not import skimage or adrt. Proceeding without them.")
 end
 
 isinteractive() ? jim(:prompt, true) : prompt(:draw)
@@ -172,7 +172,7 @@ function json_based_can(ig, json_path, is_2d=true, is_debug=false)
 
     # Debug output similar to the original function
     if is_debug
-        println("==== CYLINDER VOLUME DEBUG ====")
+        tlog("==== CYLINDER VOLUME DEBUG ====")
 
         # Calculate current parameters' volume
         curr_radius = bigger_cyl_size[1]
@@ -193,10 +193,10 @@ function json_based_can(ig, json_path, is_2d=true, is_debug=false)
         )
         curr_volume = IP.volume(curr_calc_cyl)
         curr_volume_scalar = Unitful.ustrip(cm^3, curr_volume)
-        println("Current parameters: height=$(bigger_cyl_size[3]), radius=$(curr_radius), wall=$(cylinder_wall_thickness), len_cut=$(len_cut)")
-        println("Current cylinder effective: radius=$(curr_radius_inner)cm, height=$(curr_height_below_cut)cm")
-        println("Current cylinder volume: $(curr_volume_scalar) cm³")
-        println("================================")
+        tlog("Current parameters: height=$(bigger_cyl_size[3]), radius=$(curr_radius), wall=$(cylinder_wall_thickness), len_cut=$(len_cut)")
+        tlog("Current cylinder effective: radius=$(curr_radius_inner)cm, height=$(curr_height_below_cut)cm")
+        tlog("Current cylinder volume: $(curr_volume_scalar) cm³")
+        tlog("================================")
     end
 
     # Create the geometric object (same call as in the original function)
@@ -401,7 +401,7 @@ function random_can(ig, image_size_cm, is_2d, seed, spacing, is_debug=false)
 
     # If debugging is enabled, calculate and print cylinder volumes for min/max parameters
     if is_debug
-        println("==== CYLINDER VOLUME DEBUG ====")
+        tlog("==== CYLINDER VOLUME DEBUG ====")
 
         # Calculate volume with minimum parameters from our constants
         min_height = MIN_HEIGHT
@@ -428,9 +428,9 @@ function random_can(ig, image_size_cm, is_2d, seed, spacing, is_debug=false)
         )
         min_volume = IP.volume(min_calc_cyl)
         min_volume_scalar = Unitful.ustrip(cm^3, min_volume)
-        println("Minimum parameters: height=$(min_height), radius=$(min_radius), wall=$(min_wall), len_cut=$(min_len_cut)")
-        println("Min cylinder effective: radius=$(min_radius_inner)cm, height=$(min_height_below_cut)cm")
-        println("Minimum cylinder volume: $(min_volume_scalar) cm³")
+        tlog("Minimum parameters: height=$(min_height), radius=$(min_radius), wall=$(min_wall), len_cut=$(min_len_cut)")
+        tlog("Min cylinder effective: radius=$(min_radius_inner)cm, height=$(min_height_below_cut)cm")
+        tlog("Minimum cylinder volume: $(min_volume_scalar) cm³")
 
         # Calculate volume with maximum parameters from our constants
         max_height = MAX_HEIGHT
@@ -457,10 +457,10 @@ function random_can(ig, image_size_cm, is_2d, seed, spacing, is_debug=false)
         )
         max_volume = IP.volume(max_calc_cyl)
         max_volume_scalar = Unitful.ustrip(cm^3, max_volume)
-        println("Maximum parameters: height=$(max_height), radius=$(max_radius), wall=$(max_wall), len_cut=$(max_len_cut)")
-        println("Max cylinder effective: radius=$(max_radius_inner)cm, height=$(max_height_below_cut)cm")
-        println("Maximum cylinder volume: $(max_volume_scalar) cm³")
-        println("Expected volume range: $(min_volume_scalar) to $(max_volume_scalar) cm³")
+        tlog("Maximum parameters: height=$(max_height), radius=$(max_radius), wall=$(max_wall), len_cut=$(max_len_cut)")
+        tlog("Max cylinder effective: radius=$(max_radius_inner)cm, height=$(max_height_below_cut)cm")
+        tlog("Maximum cylinder volume: $(max_volume_scalar) cm³")
+        tlog("Expected volume range: $(min_volume_scalar) to $(max_volume_scalar) cm³")
 
         # Calculate current parameters' volume
         curr_radius = bigger_cyl_size[1]
@@ -481,10 +481,10 @@ function random_can(ig, image_size_cm, is_2d, seed, spacing, is_debug=false)
         )
         curr_volume = IP.volume(curr_calc_cyl)
         curr_volume_scalar = Unitful.ustrip(cm^3, curr_volume)
-        println("Current parameters: height=$(bigger_cyl_size[3]), radius=$(curr_radius), wall=$(cylinder_wall_thickness), len_cut=$(len_cut)")
-        println("Current cylinder effective: radius=$(curr_radius_inner)cm, height=$(curr_height_below_cut)cm")
-        println("Current cylinder volume: $(curr_volume_scalar) cm³")
-        println("================================")
+        tlog("Current parameters: height=$(bigger_cyl_size[3]), radius=$(curr_radius), wall=$(cylinder_wall_thickness), len_cut=$(len_cut)")
+        tlog("Current cylinder effective: radius=$(curr_radius_inner)cm, height=$(curr_height_below_cut)cm")
+        tlog("Current cylinder volume: $(curr_volume_scalar) cm³")
+        tlog("================================")
     end
 
     # Create the geometric object
@@ -660,7 +660,7 @@ function create_boolean_density_dict(name_type_list, density_map)
             elseif obj_type == "array"
                 obj_data
             else
-                print("\n name $(obj_name) \n")
+                tlog("name $(obj_name)")
                 get_half_s_bool([obj_data])
             end
 
@@ -671,7 +671,7 @@ function create_boolean_density_dict(name_type_list, density_map)
             result_dict[obj_name] = (bool_mask, float_mask, obj_data)
         end
     end
-    print("\n ffffffffffffff finished dict \n")
+    tlog("finished dict")
 
     return result_dict
 end
@@ -722,7 +722,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
     vol, args, density_map, name_type_list, double_bottom_curvature, rounded_bottom, first_ball, second_ball,add_pipe = random_can(ig, (dims[1] * spacing[1] * 0.9, dims[2] * spacing[2] * 0.9, dims[3] * spacing[3] * 0.9), is_2d, seed, spacing, true)
     if args_json_path != " "
 
-        print(" \n loading json\n")
+        tlog("loading json")
 
         vol, args, density_map, name_type_list, double_bottom_curvature, rounded_bottom, first_ball, second_ball, add_pipe = json_based_can(ig, args_json_path, is_2d, true)
     else
@@ -1009,7 +1009,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
         pipe_inn_=(phantoms_dict["calc_cyl"][1].& phantoms_dict["pipe_in"][1])
         fluid_mask = fluid_mask .| pipe_inn_
         voxel_volume = spacing[1] * spacing[2] * spacing[3]
-        print("\n nnnnnnnnnnn pipe_inn_ numerical $(sum(pipe_inn_)*voxel_volume) \n")
+        tlog("pipe_inn_ numerical $(sum(pipe_inn_)*voxel_volume)")
 
 
     end
@@ -1037,12 +1037,12 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
         if isfile(joinpath(main_folder, "example_can.nii.gz"))
             save_sitk_image_as_dicom(sitk.ReadImage(joinpath(main_folder, "example_can.nii.gz")), reference_dicom_path)
         else
-            println("Warning: example_can.nii.gz not found, cannot create reference DICOM")
+            tlog("Warning: example_can.nii.gz not found, cannot create reference DICOM")
         end
     end
     has_reference_dicom = isdir(reference_dicom_path) && !isempty(readdir(reference_dicom_path))
     if !has_reference_dicom
-        println("Warning: reference DICOM series unavailable. Skipping DICOM-SEG conversion.")
+        tlog("Warning: reference DICOM series unavailable. Skipping DICOM-SEG conversion.")
     end
 
     # Convert fluid mask to DICOM-SEG
@@ -1086,7 +1086,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
     # 2. Pipe mask
     if(add_pipe)
         if haskey(phantoms_dict, "pipe")
-            println("Type of pipe mask: ", typeof(phantoms_dict["pipe"][1]))#Type of pipe mask: Array{Bool, 3}
+            tlog("Type of pipe mask: ", typeof(phantoms_dict["pipe"][1]))#Type of pipe mask: Array{Bool, 3}
             save_mask_as_nifti(
                 phantoms_dict["pipe"][1],
                 joinpath(main_folder, "pipe_mask.nii.gz"),
@@ -1102,7 +1102,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
     # 3. Plastic dispenser mask
     if haskey(phantoms_dict, "plastic_dispenser")
 
-        # println("Size of arr: ", size(arr))
+        # tlog("Size of arr: ", size(arr))
         save_mask_as_nifti(phantoms_dict["plastic_dispenser"][1]
             ,
             joinpath(main_folder, "dispenser_mask.nii.gz"),
@@ -1172,7 +1172,7 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
     meniscus_voxel_count = sum(meniscus_mask)
     meniscus_volume_numerical = meniscus_voxel_count * (spacing[1] * spacing[2] * spacing[3])
     params["meniscus_volume_numerical"] = meniscus_volume_numerical
-    println("Meniscus volume (numerical): $(meniscus_volume_numerical) cm³")
+    tlog("Meniscus volume (numerical): $(meniscus_volume_numerical) cm³")
 
     # Initialize required values with defaults
     params["inner_torus_volume_analytical"] = 0.0
@@ -1187,8 +1187,8 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
         params["outer_sphere_volume"] = outer_sphere_volume
         params["inner_torus_volume_analytical"] = inner_torus_volume
 
-        println("Outer sphere volume: $(outer_sphere_volume) cm³")
-        println("Inner torus volume: $(inner_torus_volume) cm³")
+        tlog("Outer sphere volume: $(outer_sphere_volume) cm³")
+        tlog("Inner torus volume: $(inner_torus_volume) cm³")
     end
 
     # Calculate fluid volume using the fixed function
@@ -1219,8 +1219,8 @@ function get_random_can_uploaded(is_2d, seed, uuid=nothing)
     # Ensure the Google Cloud Storage folder exists
     file_name = "can_is_2D_$(is_2d)_is_radon_$(add_radon)_$(dims[1])|$(dims[2])|$(dims[3])_$uuid"
 
-    println("Output stored in: $main_folder")
-    println("Zip stored in: $zip_path")
+    tlog("Output stored in: $main_folder")
+    tlog("Zip stored in: $zip_path")
 
     return numerical_vol, analytical_vol, fluid_volume_numerical_my
 end
@@ -1252,15 +1252,15 @@ end
 seed = abs(hash(uuid))
 
 
-    print("\n UUID: $uuid")
-    print("\n seed: $seed \n")
+    tlog("UUID: $uuid")
+    tlog("seed: $seed")
 
     numerical_vol, analytical_vol, fluid_volume_numerical_my = calculate_and_save_fluid_volume(seed, is_2d, uuid)
 
-    println("Main execution completed with calculated fluid volumes:")
-    println("Numerical: $(numerical_vol) cm³")
-    println("Analytical: $(analytical_vol) cm³")
-    println("fluid_volume_numerical_my: $(fluid_volume_numerical_my) cm³")
+    tlog("Main execution completed with calculated fluid volumes:")
+    tlog("Numerical: $(numerical_vol) cm³")
+    tlog("Analytical: $(analytical_vol) cm³")
+    tlog("fluid_volume_numerical_my: $(fluid_volume_numerical_my) cm³")
 # end
 
 

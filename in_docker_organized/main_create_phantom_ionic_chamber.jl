@@ -437,7 +437,7 @@ function build_image(base_params, specs, angle::Float64, spacing, dims)
     # Print cylinder information after density adjustment
     for (i, cyl) in enumerate(cylinders)
         name = i == 1 ? "base" : "cylinder_$(i-1)"
-        println(" is_spiral : $(cyl.is_spiral)  ;$name: center = (", cyl.c_x, ", ", cyl.c_y, ", ", cyl.c_z,
+        tlog(" is_spiral : $(cyl.is_spiral)  ;$name: center = (", cyl.c_x, ", ", cyl.c_y, ", ", cyl.c_z,
             ") radius = ", cyl.l_x, " length = ", cyl.l_z, " density = ", cyl.d)
     end
     # Create a dictionary where the key is the cylinder name and the value is the cylinder density
@@ -537,7 +537,7 @@ function iterative_position_adjustment(base_image, rotated_image, axis, spacing)
         distance_moved = 0.0
     end
 
-    println("Position adjustment complete: moved $(distance_moved) cm $(final_direction)")
+    tlog("Position adjustment complete: moved $(distance_moved) cm $(final_direction)")
     return distance_moved, final_direction, adjusted_image
 end
 
@@ -719,7 +719,7 @@ function create_ionic_chamber_phantom(params)
     res = zeros(size(named_res["base_cyl"]))
     keyss = keys(named_res)
 
-    print("\n  keyss $keyss \n")
+    tlog("keyss $keyss")
 
     if !ball_like && !lolipop_like
         for key in keyss
@@ -1040,7 +1040,7 @@ function json_params(args_json_path, uuid=nothing, dims=(128, 128, 128))
 
     # Print parameters for debugging
     for (key, value) in result
-        println("$key => $value")
+        tlog("$key => $value")
     end
 
     return result
@@ -1408,10 +1408,10 @@ to 60 000 mm3 mają wewnętrzny walec o promieniu 20mm, mniejsze 30 000mm3 o pro
     )
 
 
-    println("new_flat_sizes => ", new_flat_sizes)
+    tlog("new_flat_sizes => ", new_flat_sizes)
 
     for (key, value) in res
-        println("$key => $value")
+        tlog("$key => $value")
     end
 
     return res
@@ -1465,13 +1465,13 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
     params["air_volume_numerical"] = air_volume_numerical
 
     # Print air volume information
-    println("Air volume (analytical): ", air_vol)
-    println("Air volume (numerical): ", air_volume_numerical)
+    tlog("Air volume (analytical): ", air_vol)
+    tlog("Air volume (numerical): ", air_volume_numerical)
 
     # Compare analytical and numerical air volumes
     volume_difference = abs(Unitful.ustrip(cm^3,air_vol) - air_volume_numerical)
     volume_difference=volume_difference/(Unitful.ustrip(cm^3,air_vol)+air_volume_numerical)
-    println("Difference between analytical and numerical air volumes: $volume_difference %")
+    tlog("Difference between analytical and numerical air volumes: $volume_difference %")
 
     save_ionic_chamber_params(params, "$main_folder/ionic_chamber_params.json")
 
@@ -1482,9 +1482,9 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
     img.SetSpacing((params["spacing"][1] * 10, params["spacing"][2] * 10, params["spacing"][3] * 10))
     sitk.WriteImage(img, "$main_folder/ionic_chamber.nii.gz")
 
-    print(" \n add_radon $add_radon \n")
+    tlog("add_radon $add_radon")
     if (add_radon)
-        print("\n execuuute radon \n")
+        tlog("execute radon")
         input_path = "$(main_folder)/ionic_chamber.nii.gz"
         output_path = "$(main_folder)/after_radon.nii.gz"
         output_path_b = "$(main_folder)/after_radon_plus_before.nii.gz"
@@ -1502,7 +1502,7 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
 
         save_sitk_image_as_dicom(sitk.ReadImage(output_path), "$(main_folder)/after_radon")
         save_sitk_image_as_dicom(sitk.ReadImage(output_path_b), "$(main_folder)/after_radon_plus_before")
-        print("\n finish  radon \n")
+        tlog("finish radon")
 
     end
 
@@ -1513,7 +1513,7 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
     save_sitk_image_as_dicom(sitk.ReadImage(joinpath(main_folder, "ionic_chamber.nii.gz")), reference_dicom_path)
     has_reference_dicom = isdir(reference_dicom_path) && !isempty(readdir(reference_dicom_path))
     if !has_reference_dicom
-        println("Warning: reference DICOM series unavailable. Skipping DICOM-SEG conversion.")
+        tlog("Warning: reference DICOM series unavailable. Skipping DICOM-SEG conversion.")
     end
     spacing = (params["spacing"][1], params["spacing"][2], params["spacing"][3])
 
@@ -1560,8 +1560,8 @@ function get_random_chamber(dims,uuid,temp_fold,variable_spacing,randomize)
     shutil = pyimport("shutil")
     shutil.make_archive("$(temp_fold)/$(file_name)", "zip", main_folder)
 
-    println("Output stored in: $main_folder")
-    println("Zip stored in: $zip_path")
+    tlog("Output stored in: $main_folder")
+    tlog("Zip stored in: $zip_path")
 
     return add_str
 end
